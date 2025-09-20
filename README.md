@@ -1,6 +1,6 @@
 # 📖 Bajux
 
-**Bajux** (del maya *“directorio”*) es una aplicación desarrollada con **Expo + React Native** que busca servir como un directorio digital para pequeñas y medianas empresas, así como particulares (ej. palomeros, jardineros, etc.), permitiéndoles dar a conocer sus servicios de manera sencilla y accesible.
+**Bajux** es una aplicación desarrollada con **Expo + React Native** que busca servir como un directorio digital para pequeñas y medianas empresas, así como particulares (ej. plomeros, jardineros, etc.), permitiéndoles dar a conocer sus servicios de manera sencilla y accesible.
 
 ---
 
