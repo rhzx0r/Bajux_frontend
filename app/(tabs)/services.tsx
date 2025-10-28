@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   serviceName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#8B4513',
+    color: '#050504ff',
     flex: 1,
   },
   availabilityContainer: {
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   },
   serviceType: {
     fontSize: 16,
-    color: '#B8860B',
+    color: '#5b5a58ff',
     fontWeight: '600',
   },
   priceContainer: {

@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   storeName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#8B4513',
+    color: '#080808ff',
     flex: 1,
   },
   statusBadge: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   storeCategory: {
     fontSize: 16,
-    color: '#B8860B',
+    color: '#5b5a58ff',
     fontWeight: '600',
     marginBottom: 6,
   },
