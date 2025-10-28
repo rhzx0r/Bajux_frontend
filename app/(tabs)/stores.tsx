@@ -8,9 +8,11 @@ export default function StoresScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
 
+  // Categories for filtering
   const categories = ['Todos', 'Ferretería', 'Papelería', 'Alimentos y bebidas', 'Salud', 'Abarrotes', 'Comercio', 'Turismo', 'Ejercicio', 'Entretenimiento'];
 
   const stores = [
+    // Ideally, this data should be fetched from an API or database
     {
       id: '1',
       name: 'Ferretería El Martillo',

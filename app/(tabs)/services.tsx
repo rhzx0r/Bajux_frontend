@@ -8,9 +8,11 @@ export default function ServicesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
 
+  // Categories for filtering
   const categories = ['Todos', 'Reparación y construcción', 'Hogar y jardinería', 'Automotriz', 'Tecnología', 'Educación', 'Salud y bienestar', 'Eventos y entretenimiento', 'Servicios profesionales'];
 
   const services = [
+    //is better to fetch this data from an API or database
     {
       id: '1',
       name: 'Carlos Méndez',
