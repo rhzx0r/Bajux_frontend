@@ -78,7 +78,7 @@ export default function HomeScreen() {
 
         {/* Categories */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categorías Populares</Text>
+          <Text style={styles.sectionTitle}>Servicios Populares</Text>
           <View style={styles.categoriesGrid}>
             {categories.map((category, index) => (
               <TouchableOpacity key={index} style={styles.categoryCard}>
