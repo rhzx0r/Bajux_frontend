@@ -10,42 +10,42 @@ export default function ProfileScreen() {
       title: 'Mi perfil',
       subtitle: 'Información personal y preferencias',
       icon: User,
-      onPress: () => {},
+      onPress: () => { },
     },
     {
       id: 2,
       title: 'Mis pedidos',
       subtitle: 'Historial de compras y estado',
       icon: Clock,
-      onPress: () => {},
+      onPress: () => { },
     },
     {
       id: 3,
       title: 'Favoritos',
       subtitle: 'Servicios y tiendas guardados',
       icon: Heart,
-      onPress: () => {},
+      onPress: () => { },
     },
     {
       id: 4,
       title: 'Métodos de pago',
       subtitle: 'Tarjetas y formas de pago',
       icon: CreditCard,
-      onPress: () => {},
+      onPress: () => { },
     },
     {
       id: 5,
       title: 'Configuración',
       subtitle: 'Notificaciones y privacidad',
       icon: Settings,
-      onPress: () => {},
+      onPress: () => { },
     },
     {
       id: 6,
       title: 'Ayuda y soporte',
       subtitle: 'FAQ y contacto',
       icon: HelpCircle,
-      onPress: () => {},
+      onPress: () => { },
     },
   ];
 
@@ -86,11 +86,6 @@ export default function ProfileScreen() {
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>8</Text>
             <Text style={styles.statLabel}>Favoritos</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>4.9</Text>
-            <Text style={styles.statLabel}>Rating</Text>
           </View>
         </View>
 
