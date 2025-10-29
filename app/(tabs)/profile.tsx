@@ -1,9 +1,34 @@
+// app/(tabs)/profile.tsx
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Settings, Heart, Clock, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight } from 'lucide-react-native';
+import {
+  User,
+  Settings,
+  Heart,
+  Clock,
+  CreditCard,
+  CircleHelp as HelpCircle,
+  LogOut,
+  ChevronRight,
+  MapPin,
+  Mail,
+} from 'lucide-react-native';
+import { useAuth } from '../../providers/AuthProvider';
+import { AuthForms } from '../../components/AuthForms';
+import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 
 export default function ProfileScreen() {
+  const { session, profile, loading, signOut } = useAuth();
+  const [logoutModal, setLogoutModal] = React.useState(false);
+
   const menuItems = [
     {
       id: 1,
@@ -49,6 +74,40 @@ export default function ProfileScreen() {
     },
   ];
 
+  const handleSignOut = () => {
+    setLogoutModal(true);
+  };
+
+  const confirmSignOut = async () => {
+    try {
+      await signOut();
+      setLogoutModal(false);
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
+
+  // SI NO HAY SESIÓN: mostrar formularios de autenticación
+  if (!session) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <AuthForms />
+      </SafeAreaView>
+    );
+  }
+
+  // SI ESTÁ CARGANDO
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Cargando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // SI HAY SESIÓN: mostrar perfil normal
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -61,14 +120,37 @@ export default function ProfileScreen() {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <Image
-            source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400' }}
+            source={{
+              uri:
+                profile?.imagen_url ||
+                'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400',
+            }}
             style={styles.profileImage}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>Juan Pérez</Text>
-            <Text style={styles.profileEmail}>juan.perez@email.com</Text>
+            <Text style={styles.profileName}>
+              {profile?.nombre ||
+                session.user?.email?.split('@')[0] ||
+                'Usuario'}
+            </Text>
+            <View style={styles.profileDetail}>
+              <Mail size={14} color="#B8860B" />
+              <Text style={styles.profileEmail}>{session.user?.email}</Text>
+            </View>
+            {profile?.ubicacion && (
+              <View style={styles.profileDetail}>
+                <MapPin size={14} color="#B8860B" />
+                <Text style={styles.profileLocation}>{profile.ubicacion}</Text>
+              </View>
+            )}
             <View style={styles.membershipBadge}>
-              <Text style={styles.membershipText}>Cliente Premium</Text>
+              <Text style={styles.membershipText}>
+                {profile?.rol_actual === 'comerciante'
+                  ? 'Comerciante'
+                  : profile?.rol_actual === 'administrador'
+                    ? 'Administrador'
+                    : 'Cliente'}
+              </Text>
             </View>
           </View>
           <TouchableOpacity style={styles.editButton}>
@@ -79,17 +161,17 @@ export default function ProfileScreen() {
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statNumber}>0</Text>
             <Text style={styles.statLabel}>Pedidos</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>8</Text>
+            <Text style={styles.statNumber}>0</Text>
             <Text style={styles.statLabel}>Favoritos</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>4.9</Text>
+            <Text style={styles.statNumber}>-</Text>
             <Text style={styles.statLabel}>Rating</Text>
           </View>
         </View>
@@ -97,7 +179,11 @@ export default function ProfileScreen() {
         {/* Menu Items */}
         <View style={styles.menuContainer}>
           {menuItems.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.menuItem} onPress={item.onPress}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItem}
+              onPress={item.onPress}
+            >
               <View style={styles.menuIconContainer}>
                 <item.icon size={24} color="#8B4513" />
               </View>
@@ -111,7 +197,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
           <LogOut size={20} color="#FF6B6B" />
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
@@ -125,14 +211,36 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Modal de confirmación */}
+      <ConfirmationModal
+        visible={logoutModal}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que quieres cerrar sesión?"
+        confirmText="Cerrar sesión"
+        cancelText="Cancelar"
+        type="danger"
+        onConfirm={confirmSignOut}
+        onCancel={() => setLogoutModal(false)}
+      />
     </SafeAreaView>
   );
 }
 
+// Tus estilos existentes aquí...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FEFEFE',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#8B4513',
   },
   header: {
     paddingHorizontal: 20,
@@ -182,12 +290,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#8B4513',
+    marginBottom: 8,
+  },
+  profileDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
   profileEmail: {
     fontSize: 14,
     color: '#B8860B',
-    marginBottom: 8,
+    marginLeft: 6,
+  },
+  profileLocation: {
+    fontSize: 14,
+    color: '#B8860B',
+    marginLeft: 6,
   },
   membershipBadge: {
     backgroundColor: '#FFD700',
@@ -195,6 +313,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     alignSelf: 'flex-start',
+    marginTop: 4,
   },
   membershipText: {
     fontSize: 12,
