@@ -46,27 +46,47 @@ export const authService = {
 
       if (authError) throw authError;
 
-      // 2. Si el usuario se creó correctamente, crear el perfil en la tabla perfil_usuario
-      if (authData.user) {
-        const profileData: NewProfile = {
-          id: authData.user.id,
-          nombre: userData.nombre,
-          username: userData.username,
-          edad: userData.edad || null,
-          ubicacion: userData.ubicacion || null,
-          cuenta_bancaria: null,
-          rol_actual: 'cliente',
-          imagen_url: null,
-        };
+      // 2. Verificar que el usuario se creó correctamente en Auth
+      if (!authData.user) {
+        throw new Error(
+          'No se pudo crear el usuario en el sistema de autenticación',
+        );
+      }
 
-        const { error: profileError } = await supabase
-          .from('perfil_usuario')
-          .insert(profileData);
+      console.log('Usuario creado en Auth:', authData.user.id);
 
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          throw profileError;
+      // 3. Esperar un momento para asegurar que el usuario esté en la tabla users
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // 4. Crear el perfil en la tabla perfil_usuario con el tipo correcto
+      const profileData: NewProfile = {
+        id: authData.user.id,
+        nombre: userData.nombre,
+        username: userData.username,
+        edad: userData.edad || null,
+        ubicacion: userData.ubicacion || null,
+        cuenta_bancaria: null,
+        rol_actual: 'cliente',
+        imagen_url: null,
+      };
+
+      console.log('Creando perfil con ID:', profileData.id);
+
+      const { error: profileError } = await supabase
+        .from('perfil_usuario')
+        .insert(profileData);
+
+      if (profileError) {
+        console.error('Error creando perfil:', profileError);
+
+        // Si falla la creación del perfil, intentar eliminar el usuario de Auth
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (deleteError) {
+          console.error('Error eliminando usuario de Auth:', deleteError);
         }
+
+        throw profileError;
       }
 
       return {
@@ -76,6 +96,7 @@ export const authService = {
           'Registro exitoso. Por favor, verifica tu email antes de iniciar sesión.',
       };
     } catch (error: any) {
+      console.error('Error en registro completo:', error);
       return { data: null, error };
     }
   },
