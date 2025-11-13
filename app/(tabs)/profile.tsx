@@ -300,18 +300,19 @@ export default function ProfileScreen() {
         )}
 
         {/* Botón para convertirse en comerciante */}
-        {profile?.rol_actual === 'cliente' && (
-          <TouchableOpacity
-            style={styles.becomeComercianteButton}
-            onPress={() => setShowCreateComercio(true)}
-          >
-            <Store size={20} color="#8B4513" />
-            <Text style={styles.becomeComercianteText}>
-              Convertirse en Comerciante
-            </Text>
-            <ChevronRight size={20} color="#B8860B" />
-          </TouchableOpacity>
-        )}
+        {profile?.rol_actual === 'cliente' ||
+          (profile?.rol_actual === 'administrador' && (
+            <TouchableOpacity
+              style={styles.becomeComercianteButton}
+              onPress={() => setShowCreateComercio(true)}
+            >
+              <Store size={20} color="#8B4513" />
+              <Text style={styles.becomeComercianteText}>
+                Convertirse en Comerciante
+              </Text>
+              <ChevronRight size={20} color="#B8860B" />
+            </TouchableOpacity>
+          ))}
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
