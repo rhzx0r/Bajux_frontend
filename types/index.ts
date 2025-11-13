@@ -16,6 +16,13 @@ export type TipoRol = Enums<'tipo_rol'>;
 export type TipoOferta = Enums<'tipo_oferta'>;
 export type EstadoPedido = Enums<'estado_pedido'>;
 
+// Nuevos tipos para comercios
+export type NewComercio = TablesInsert<'comercio'>;
+export type UpdateComercio = TablesUpdate<'comercio'>;
+
+export type CategoriaComercio = Tables<'categoria_comercio'>;
+export type NewOferta = TablesInsert<'oferta'>;
+
 // Re-exportar todo desde supabase
 export type { Database } from './supabase';
 export type { Tables, TablesInsert, TablesUpdate, Enums } from './supabase';

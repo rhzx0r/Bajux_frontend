@@ -1,5 +1,5 @@
 // app/(tabs)/profile.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -25,8 +25,17 @@ import { useAuth } from '../../providers/AuthProvider';
 import { AuthForms } from '../../components/AuthForms';
 import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 
+// Para comercio
+import { Store, Plus } from 'lucide-react-native';
+import { CreateComercioForm } from '../../components/Form/CreateComercioForm';
+import { comercioService } from '../../lib/comercio';
+import { Comercio } from '../../types';
+
 export default function ProfileScreen() {
-  const { session, profile, loading, signOut } = useAuth();
+  const { session, profile, loading, signOut, refetchProfile } = useAuth();
+  const [showCreateComercio, setShowCreateComercio] = useState(false);
+  const [misComercios, setMisComercios] = useState<Comercio[]>([]);
+  const [loadingComercios, setLoadingComercios] = useState(false);
   const [logoutModal, setLogoutModal] = React.useState(false);
 
   const menuItems = [
@@ -72,7 +81,47 @@ export default function ProfileScreen() {
       icon: HelpCircle,
       onPress: () => {},
     },
+    ...(profile?.rol_actual === 'comerciante'
+      ? [
+          {
+            id: 7,
+            title: 'Mis Comercios',
+            subtitle: 'Gestiona tus negocios',
+            icon: Store,
+            onPress: () => {}, // Puedes navegar a una pantalla de gestión
+          },
+        ]
+      : []),
   ];
+
+  // Para comercio
+  useEffect(() => {
+    if (session && profile?.rol_actual === 'comerciante') {
+      loadMisComercios();
+    }
+  }, [session, profile?.rol_actual]);
+
+  const loadMisComercios = async () => {
+    if (!session) return;
+
+    setLoadingComercios(true);
+    try {
+      const comercios = await comercioService.getComerciosByUser(session);
+      setMisComercios(comercios);
+    } catch (error) {
+      console.error('Error loading comercios:', error);
+    } finally {
+      setLoadingComercios(false);
+    }
+  };
+
+  console.log('profile', profile);
+
+  const handleComercioCreated = async () => {
+    setShowCreateComercio(false);
+    await refetchProfile(); // Para actualizar el rol a comerciante
+    await loadMisComercios();
+  };
 
   const handleSignOut = () => {
     setLogoutModal(true);
@@ -196,6 +245,74 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {/* Sección de Comercios */}
+        {profile?.rol_actual === 'comerciante' && (
+          <View style={styles.comerciosSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Mis Comercios</Text>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setShowCreateComercio(true)}
+              >
+                <Plus size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {loadingComercios ? (
+              <Text style={styles.loadingText}>Cargando comercios...</Text>
+            ) : misComercios.length > 0 ? (
+              misComercios.map((comercio) => (
+                <TouchableOpacity key={comercio.id} style={styles.comercioCard}>
+                  <Image
+                    source={{
+                      uri:
+                        comercio.imagen_url ||
+                        'https://images.pexels.com/photos/264537/pexels-photo-264537.jpeg?auto=compress&cs=tinysrgb&w=400',
+                    }}
+                    style={styles.comercioImage}
+                  />
+                  <View style={styles.comercioInfo}>
+                    <Text style={styles.comercioName}>{comercio.nombre}</Text>
+                    <Text style={styles.comercioLocation}>
+                      {comercio.ubicacion}
+                    </Text>
+                    <Text style={styles.comercioDescription} numberOfLines={2}>
+                      {comercio.descripcion}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <TouchableOpacity
+                style={styles.emptyComercioCard}
+                onPress={() => setShowCreateComercio(true)}
+              >
+                <Store size={32} color="#B8860B" />
+                <Text style={styles.emptyComercioText}>
+                  Crear mi primer comercio
+                </Text>
+                <Text style={styles.emptyComercioSubtext}>
+                  Comienza a ofrecer tus productos y servicios
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Botón para convertirse en comerciante */}
+        {profile?.rol_actual === 'cliente' && (
+          <TouchableOpacity
+            style={styles.becomeComercianteButton}
+            onPress={() => setShowCreateComercio(true)}
+          >
+            <Store size={20} color="#8B4513" />
+            <Text style={styles.becomeComercianteText}>
+              Convertirse en Comerciante
+            </Text>
+            <ChevronRight size={20} color="#B8860B" />
+          </TouchableOpacity>
+        )}
+
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
           <LogOut size={20} color="#FF6B6B" />
@@ -223,6 +340,14 @@ export default function ProfileScreen() {
         onConfirm={confirmSignOut}
         onCancel={() => setLogoutModal(false)}
       />
+
+      {/* Modal para crear comercio */}
+      {showCreateComercio && (
+        <CreateComercioForm
+          onSuccess={handleComercioCreated}
+          onCancel={() => setShowCreateComercio(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -454,5 +579,104 @@ const styles = StyleSheet.create({
     color: '#888888',
     textAlign: 'center',
     lineHeight: 20,
+  },
+
+  // comercio
+  comerciosSection: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#8B4513',
+  },
+  addButton: {
+    backgroundColor: '#8B4513',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  comercioCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#D2B48C',
+  },
+  comercioImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  comercioInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  comercioName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginBottom: 4,
+  },
+  comercioLocation: {
+    fontSize: 14,
+    color: '#B8860B',
+    marginBottom: 4,
+  },
+  comercioDescription: {
+    fontSize: 12,
+    color: '#666',
+  },
+  emptyComercioCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 32,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#D2B48C',
+    borderStyle: 'dashed',
+  },
+  emptyComercioText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8B4513',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  emptyComercioSubtext: {
+    fontSize: 14,
+    color: '#B8860B',
+    textAlign: 'center',
+  },
+  becomeComercianteButton: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D2B48C',
+  },
+  becomeComercianteText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8B4513',
+    marginLeft: 12,
   },
 });

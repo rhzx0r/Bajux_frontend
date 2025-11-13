@@ -51,4 +51,35 @@ export const storageService = {
       return { data: null, error };
     }
   },
+
+  async uploadComercioImage(
+    userId: string,
+    fileUri: string,
+  ): Promise<string | null> {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+
+      const fileExt = fileUri.split('.').pop() || 'jpg';
+      const fileName = `comercios/${userId}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('images')
+        .upload(fileName, blob, {
+          upsert: true,
+          contentType: 'image/jpeg',
+        });
+
+      if (error) throw error;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('images').getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading comercio image:', error);
+      return null;
+    }
+  },
 };
