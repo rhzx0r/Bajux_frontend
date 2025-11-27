@@ -67,7 +67,7 @@ export default function ServicesScreen() {
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         service.service.toLowerCase().includes(searchQuery.toLowerCase());
+      service.service.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Todos' || service.service === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -149,34 +149,34 @@ export default function ServicesScreen() {
                   </Text>
                 </View>
               </View>
-              
+
               <View style={styles.serviceTypeContainer}>
                 <Text style={styles.serviceType}>{service.service}</Text>
                 <View style={styles.priceContainer}>
                   {renderPriceRange(service.priceRange)}
                 </View>
               </View>
-              
+
               <Text style={styles.serviceDescription} numberOfLines={2}>
                 {service.description}
               </Text>
-              
+
               <View style={styles.serviceFooter}>
                 <View style={styles.ratingContainer}>
                   <Star size={16} color="#FFD700" fill="#FFD700" />
                   <Text style={styles.ratingText}>{service.rating}</Text>
                   <Text style={styles.reviewsText}>({service.reviews} reseñas)</Text>
                 </View>
-                
+
                 <View style={styles.locationContainer}>
                   <MapPin size={14} color="#B8860B" />
                   <Text style={styles.locationText}>{service.location}</Text>
                 </View>
               </View>
-              
+
               <TouchableOpacity
                 style={styles.contactButton}
-                onPress={() => {/* Handle contact */}}
+                onPress={() => {/* Handle contact */ }}
               >
                 <Phone size={16} color="#FFFFFF" />
                 <Text style={styles.contactButtonText}>Contactar</Text>
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   serviceName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#8B4513',
+    color: '#121110ff',
     flex: 1,
   },
   availabilityContainer: {
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   serviceType: {
     fontSize: 16,
-    color: '#B8860B',
+    color: '#030303ff',
     fontWeight: '600',
   },
   priceContainer: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   serviceDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: '#3c3535ff',
     lineHeight: 20,
     marginBottom: 12,
   },

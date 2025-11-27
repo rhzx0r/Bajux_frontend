@@ -71,7 +71,7 @@ export default function StoresScreen() {
 
   const filteredStores = stores.filter(store => {
     const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         store.category.toLowerCase().includes(searchQuery.toLowerCase());
+      store.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Todos' || store.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -144,30 +144,30 @@ export default function StoresScreen() {
                   </Text>
                 </View>
               </View>
-              
+
               <Text style={styles.storeCategory}>{store.category}</Text>
               <Text style={styles.storeDescription} numberOfLines={2}>
                 {store.description}
               </Text>
-              
+
               <View style={styles.storeInfo}>
                 <View style={styles.ratingContainer}>
                   <Star size={16} color="#FFD700" fill="#FFD700" />
                   <Text style={styles.ratingText}>{store.rating}</Text>
                   <Text style={styles.reviewsText}>({store.reviews})</Text>
                 </View>
-                
+
                 <View style={styles.productsContainer}>
                   <Package size={16} color="#B8860B" />
                   <Text style={styles.productsText}>{store.productsCount} productos</Text>
                 </View>
               </View>
-              
+
               <View style={styles.locationContainer}>
                 <MapPin size={14} color="#B8860B" />
                 <Text style={styles.locationText}>{store.location}</Text>
               </View>
-              
+
               <View style={styles.hoursContainer}>
                 <Clock size={14} color="#8B4513" />
                 <Text style={styles.hoursText}>{store.openHours}</Text>
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   storeName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#8B4513',
+    color: '#170f09ff',
     flex: 1,
   },
   statusBadge: {
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   storeCategory: {
     fontSize: 16,
-    color: '#B8860B',
+    color: '#1f1a10ff',
     fontWeight: '600',
     marginBottom: 6,
   },
