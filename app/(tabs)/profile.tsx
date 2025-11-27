@@ -21,6 +21,7 @@ import {
   MapPin,
   Mail,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useAuth } from '../../providers/AuthProvider';
 import { AuthForms } from '../../components/AuthForms';
 import { ConfirmationModal } from '@/components/common/ConfirmationModal';
@@ -88,7 +89,16 @@ export default function ProfileScreen() {
             title: 'Mis Comercios',
             subtitle: 'Gestiona tus negocios',
             icon: Store,
-            onPress: () => {}, // Puedes navegar a una pantalla de gestión
+            onPress: () => {
+              // Si tiene comercios, ir al primero por ahora, o simplemente navegar a una lista
+              // Como la sección ya está visible en el perfil, podríamos hacer scroll o nada.
+              // Pero para dar feedback, quizás podríamos navegar al primer comercio si existe.
+              if (misComercios.length > 0) {
+                router.push(`/store/${misComercios[0].id}`);
+              } else {
+                setShowCreateComercio(true);
+              }
+            },
           },
         ]
       : []),
@@ -262,7 +272,11 @@ export default function ProfileScreen() {
               <Text style={styles.loadingText}>Cargando comercios...</Text>
             ) : misComercios.length > 0 ? (
               misComercios.map((comercio) => (
-                <TouchableOpacity key={comercio.id} style={styles.comercioCard}>
+                <TouchableOpacity
+                  key={comercio.id}
+                  style={styles.comercioCard}
+                  onPress={() => router.push(`/store/${comercio.id}`)}
+                >
                   <Image
                     source={{
                       uri:
