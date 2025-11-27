@@ -5,6 +5,8 @@ import type {
   UpdateComercio,
   Comercio,
   CategoriaComercio,
+  Oferta,
+  NewOferta,
 } from '../types';
 
 export const comercioService = {
@@ -43,7 +45,7 @@ export const comercioService = {
       .from('comercio')
       .select('*')
       .eq('propietario_id', session.user.id)
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -96,5 +98,30 @@ export const comercioService = {
     });
 
     if (error) throw error;
+  },
+
+  // Obtener ofertas de un comercio
+  async getOfertasByComercio(comercioId: number): Promise<Oferta[]> {
+    const { data, error } = await supabase
+      .from('oferta')
+      .select('*')
+      .eq('comercio_id', comercioId)
+      .eq('disponible', true)
+      .order('id', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Crear una nueva oferta (producto/servicio)
+  async createOferta(ofertaData: Omit<NewOferta, 'id'>): Promise<Oferta> {
+    const { data, error } = await supabase
+      .from('oferta')
+      .insert(ofertaData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 };

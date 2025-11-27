@@ -21,21 +21,17 @@ import {
   MapPin,
   Mail,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useAuth } from '../../providers/AuthProvider';
 import { AuthForms } from '../../components/AuthForms';
 import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 
 // Para comercio
-import { Store, Plus } from 'lucide-react-native';
-import { CreateComercioForm } from '../../components/Form/CreateComercioForm';
-import { comercioService } from '../../lib/comercio';
+import { Store } from 'lucide-react-native';
 import { Comercio } from '../../types';
 
 export default function ProfileScreen() {
   const { session, profile, loading, signOut, refetchProfile } = useAuth();
-  const [showCreateComercio, setShowCreateComercio] = useState(false);
-  const [misComercios, setMisComercios] = useState<Comercio[]>([]);
-  const [loadingComercios, setLoadingComercios] = useState(false);
   const [logoutModal, setLogoutModal] = React.useState(false);
 
   const menuItems = [
@@ -88,40 +84,15 @@ export default function ProfileScreen() {
             title: 'Mis Comercios',
             subtitle: 'Gestiona tus negocios',
             icon: Store,
-            onPress: () => {}, // Puedes navegar a una pantalla de gestión
+            onPress: () => {
+              router.push('/my-shops');
+            },
           },
         ]
       : []),
   ];
 
-  // Para comercio
-  useEffect(() => {
-    if (session && profile?.rol_actual === 'comerciante') {
-      loadMisComercios();
-    }
-  }, [session, profile?.rol_actual]);
-
-  const loadMisComercios = async () => {
-    if (!session) return;
-
-    setLoadingComercios(true);
-    try {
-      const comercios = await comercioService.getComerciosByUser(session);
-      setMisComercios(comercios);
-    } catch (error) {
-      console.error('Error loading comercios:', error);
-    } finally {
-      setLoadingComercios(false);
-    }
-  };
-
   console.log('profile', profile);
-
-  const handleComercioCreated = async () => {
-    setShowCreateComercio(false);
-    await refetchProfile(); // Para actualizar el rol a comerciante
-    await loadMisComercios();
-  };
 
   const handleSignOut = () => {
     setLogoutModal(true);
@@ -245,65 +216,11 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* Sección de Comercios */}
-        {profile?.rol_actual === 'comerciante' && (
-          <View style={styles.comerciosSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Mis Comercios</Text>
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => setShowCreateComercio(true)}
-              >
-                <Plus size={20} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-
-            {loadingComercios ? (
-              <Text style={styles.loadingText}>Cargando comercios...</Text>
-            ) : misComercios.length > 0 ? (
-              misComercios.map((comercio) => (
-                <TouchableOpacity key={comercio.id} style={styles.comercioCard}>
-                  <Image
-                    source={{
-                      uri:
-                        comercio.imagen_url ||
-                        'https://images.pexels.com/photos/264537/pexels-photo-264537.jpeg?auto=compress&cs=tinysrgb&w=400',
-                    }}
-                    style={styles.comercioImage}
-                  />
-                  <View style={styles.comercioInfo}>
-                    <Text style={styles.comercioName}>{comercio.nombre}</Text>
-                    <Text style={styles.comercioLocation}>
-                      {comercio.ubicacion}
-                    </Text>
-                    <Text style={styles.comercioDescription} numberOfLines={2}>
-                      {comercio.descripcion}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <TouchableOpacity
-                style={styles.emptyComercioCard}
-                onPress={() => setShowCreateComercio(true)}
-              >
-                <Store size={32} color="#B8860B" />
-                <Text style={styles.emptyComercioText}>
-                  Crear mi primer comercio
-                </Text>
-                <Text style={styles.emptyComercioSubtext}>
-                  Comienza a ofrecer tus productos y servicios
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-
         {/* Botón para convertirse en comerciante */}
         {profile?.rol_actual === 'cliente' && (
           <TouchableOpacity
             style={styles.becomeComercianteButton}
-            onPress={() => setShowCreateComercio(true)}
+            onPress={() => router.push('/my-shops')}
           >
             <Store size={20} color="#8B4513" />
             <Text style={styles.becomeComercianteText}>
@@ -341,13 +258,6 @@ export default function ProfileScreen() {
         onCancel={() => setLogoutModal(false)}
       />
 
-      {/* Modal para crear comercio */}
-      {showCreateComercio && (
-        <CreateComercioForm
-          onSuccess={handleComercioCreated}
-          onCancel={() => setShowCreateComercio(false)}
-        />
-      )}
     </SafeAreaView>
   );
 }
