@@ -5,6 +5,9 @@ import type {
   UpdateComercio,
   Comercio,
   CategoriaComercio,
+  Oferta,
+  NewOferta,
+  UpdateOferta,
 } from '../types';
 
 export const comercioService = {
@@ -43,7 +46,7 @@ export const comercioService = {
       .from('comercio')
       .select('*')
       .eq('propietario_id', session.user.id)
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -94,6 +97,61 @@ export const comercioService = {
       comercio_id: comercioId,
       categoria_comercio_id: categoriaId,
     });
+
+    if (error) throw error;
+  },
+
+  // Obtener ofertas de un comercio
+  async getOfertasByComercio(
+    comercioId: number,
+    includeUnavailable = false,
+  ): Promise<Oferta[]> {
+    let query = supabase
+      .from('oferta')
+      .select('*')
+      .eq('comercio_id', comercioId);
+
+    if (!includeUnavailable) {
+      query = query.eq('disponible', true);
+    }
+
+    const { data, error } = await query.order('id', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Crear una nueva oferta (producto/servicio)
+  async createOferta(ofertaData: Omit<NewOferta, 'id'>): Promise<Oferta> {
+    const { data, error } = await supabase
+      .from('oferta')
+      .insert(ofertaData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Actualizar una oferta
+  async updateOferta(id: number, updates: UpdateOferta): Promise<Oferta> {
+    const { data, error } = await supabase
+      .from('oferta')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Eliminar (o desactivar) una oferta
+  async deleteOferta(id: number): Promise<void> {
+    const { error } = await supabase
+      .from('oferta')
+      .delete()
+      .eq('id', id);
 
     if (error) throw error;
   },

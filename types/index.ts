@@ -22,6 +22,7 @@ export type UpdateComercio = TablesUpdate<'comercio'>;
 
 export type CategoriaComercio = Tables<'categoria_comercio'>;
 export type NewOferta = TablesInsert<'oferta'>;
+export type UpdateOferta = TablesUpdate<'oferta'>;
 
 // Re-exportar todo desde supabase
 export type { Database } from './supabase';
