@@ -43,7 +43,7 @@ export const comercioService = {
       .from('comercio')
       .select('*')
       .eq('propietario_id', session.user.id)
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false });
 
     if (error) throw error;
     return data || [];
