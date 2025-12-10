@@ -94,9 +94,9 @@ export default function HomeScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Servicios Destacados</Text>
-                {/* <TouchableOpacity onPress={() => router.push('/services')}>
+                <TouchableOpacity onPress={() => router.push('/services')}>
                   <Text style={styles.seeAllText}>Ver todos</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                 {services.length > 0 ? (
@@ -132,9 +132,9 @@ export default function HomeScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Tiendas Destacadas</Text>
-                {/* <TouchableOpacity onPress={() => router.push('/stores')}>
+                <TouchableOpacity onPress={() => router.push('/stores')}>
                   <Text style={styles.seeAllText}>Ver todas</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                 {stores.length > 0 ? (

@@ -192,7 +192,7 @@ export function CreateOfertaForm({
               <View style={styles.inputContainer}>
                 <Tag size={20} color="#B8860B" />
                 <TextInput
-                  placeholder="Ej. Martillo"
+                  placeholder="Nombre..."
                   value={formData.nombre}
                   onChangeText={(text) =>
                     setFormData({ ...formData, nombre: text })
@@ -205,7 +205,7 @@ export function CreateOfertaForm({
             <View style={styles.formGroup}>
               <Text style={styles.label}>Descripción</Text>
               <TextInput
-                placeholder="Detalles del artículo..."
+                placeholder="Detalles..."
                 value={formData.descripcion}
                 onChangeText={(text) =>
                   setFormData({ ...formData, descripcion: text })
