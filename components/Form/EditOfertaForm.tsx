@@ -132,8 +132,43 @@ export function EditOfertaForm({
             try {
               await comercioService.deleteOferta(oferta.id);
               onSuccess();
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar el artículo');
+            } catch (error: any) {
+              console.error(error);
+              // Código de error de llave foránea en PostgreSQL: 23503
+              if (error?.code === '23503') {
+                Alert.alert(
+                  'No se puede eliminar',
+                  'Este artículo tiene pedidos asociados y no se puede eliminar permanentemente para mantener el historial. ¿Deseas marcarlo como no disponible?',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Marcar como no disponible',
+                      onPress: async () => {
+                        try {
+                          await comercioService.updateOferta(oferta.id, {
+                            disponible: false,
+                          });
+                          Alert.alert(
+                            'Actualizado',
+                            'El artículo ha sido marcado como no disponible.'
+                          );
+                          onSuccess();
+                        } catch (updateError) {
+                          Alert.alert(
+                            'Error',
+                            'No se pudo actualizar el estado del artículo.'
+                          );
+                        }
+                      },
+                    },
+                  ]
+                );
+              } else {
+                Alert.alert(
+                  'Error',
+                  'No se pudo eliminar el artículo. Intenta nuevamente.'
+                );
+              }
             } finally {
               setLoading(false);
             }

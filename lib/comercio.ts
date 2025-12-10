@@ -148,10 +148,26 @@ export const comercioService = {
 
   // Eliminar (o desactivar) una oferta
   async deleteOferta(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('oferta')
-      .delete()
-      .eq('id', id);
+    // 1. Verificar si existen pedidos asociados (bloqueo por historial)
+    const { count, error: countError } = await supabase
+      .from('detalle_pedido')
+      .select('*', { count: 'exact', head: true })
+      .eq('oferta_id', id);
+
+    if (countError) throw countError;
+
+    // Si hay pedidos, lanzamos error de llave foránea simulado para que el frontend sugiera archivar
+    // Esto evita borrar reseñas/categorías si la oferta no se puede eliminar
+    if (count && count > 0) {
+      throw { code: '23503', message: 'Oferta tiene pedidos asociados' };
+    }
+
+    // 2. Si no hay pedidos, eliminar dependencias
+    await supabase.from('oferta_tiene_categoria').delete().eq('oferta_id', id);
+    await supabase.from('resena_oferta').delete().eq('oferta_id', id);
+
+    // 3. Eliminar la oferta
+    const { error } = await supabase.from('oferta').delete().eq('id', id);
 
     if (error) throw error;
   },
