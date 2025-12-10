@@ -80,7 +80,7 @@ export default function HomeScreen() {
                       <TouchableOpacity key={category.id} style={styles.categoryCard}>
                         {/* Placeholder icon since we don't have icons in DB yet */}
                         <View style={styles.categoryIconContainer}>
-                          {getCategoryIcon(category.nombre, 24, '#8B4513')}
+                          {getCategoryIcon(category.nombre || '', 24, '#8B4513')}
                         </View>
                         <Text style={styles.categoryName}>{category.nombre}</Text>
                         <Text style={styles.categoryCount}>{category.descripcion}</Text>

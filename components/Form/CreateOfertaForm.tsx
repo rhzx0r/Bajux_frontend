@@ -16,6 +16,7 @@ import { Camera, X, Tag, DollarSign, Package } from 'lucide-react-native';
 import { comercioService } from '../../lib/comercio';
 import { storageService } from '../../lib/storage';
 import { TipoOferta } from '../../types';
+import { CategorySelector } from './CategorySelector';
 
 interface CreateOfertaFormProps {
   comercioId: number;
@@ -30,6 +31,7 @@ export function CreateOfertaForm({
 }: CreateOfertaFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -86,7 +88,7 @@ export function CreateOfertaForm({
         );
       }
 
-      await comercioService.createOferta({
+      const newOferta = await comercioService.createOferta({
         comercio_id: comercioId,
         nombre: formData.nombre,
         descripcion: formData.descripcion,
@@ -96,6 +98,10 @@ export function CreateOfertaForm({
         disponible: formData.disponible,
         imagen_url: imagenUrl,
       });
+
+      if (selectedCategories.length > 0) {
+        await comercioService.updateOfertaCategories(newOferta.id, selectedCategories);
+      }
 
       Alert.alert('Éxito', `${formData.tipo === 'producto' ? 'Producto' : 'Servicio'} creado correctamente`);
       onSuccess();
@@ -261,6 +267,12 @@ export function CreateOfertaForm({
                 thumbColor={formData.disponible ? "#D2B48C" : "#f4f3f4"}
               />
             </View>
+
+            {/* Category Selector */}
+            <CategorySelector
+              selectedIds={selectedCategories}
+              onSelectionChange={setSelectedCategories}
+            />
 
             {/* Buttons */}
             <View style={styles.buttons}>

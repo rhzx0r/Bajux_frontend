@@ -15,8 +15,8 @@ export const CartIcon: React.FC<CartIconProps> = ({ size = 24, color = '#8B4513'
     <View style={styles.container}>
       <ShoppingCart size={size} color={color} />
       {totalItems > 0 && (
-        <View style={styles.badge} testID="cart-badge-container">
-          <Text style={styles.badgeText} testID="cart-badge-text">
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
             {totalItems > 9 ? '9+' : totalItems}
           </Text>
         </View>

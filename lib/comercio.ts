@@ -5,6 +5,7 @@ import type {
   UpdateComercio,
   Comercio,
   CategoriaComercio,
+  CategoriaOferta,
   Oferta,
   NewOferta,
   UpdateOferta,
@@ -133,6 +134,60 @@ export const comercioService = {
     if (error) throw error;
   },
 
+  // === Categorías de Oferta ===
+
+  // Obtener categorías de ofertas
+  async getCategoriasOferta(): Promise<CategoriaOferta[]> {
+    const { data, error } = await supabase
+      .from('categoria_oferta')
+      .select('*')
+      .order('nombre');
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Obtener categorías asignadas a una oferta
+  async getCategoriasByOferta(ofertaId: number): Promise<number[]> {
+    const { data, error } = await supabase
+      .from('oferta_tiene_categoria')
+      .select('categoria_oferta_id')
+      .eq('oferta_id', ofertaId);
+
+    if (error) throw error;
+    return data.map((item) => item.categoria_oferta_id!).filter(Boolean);
+  },
+
+  // Asignar categorías a una oferta (sobrescribe)
+  async updateOfertaCategories(
+    ofertaId: number,
+    categoryIds: number[],
+  ): Promise<void> {
+    // 1. Eliminar existentes
+    const { error: deleteError } = await supabase
+      .from('oferta_tiene_categoria')
+      .delete()
+      .eq('oferta_id', ofertaId);
+
+    if (deleteError) throw deleteError;
+
+    if (categoryIds.length === 0) return;
+
+    // 2. Insertar nuevas
+    const toInsert = categoryIds.map((catId) => ({
+      oferta_id: ofertaId,
+      categoria_oferta_id: catId,
+    }));
+
+    const { error: insertError } = await supabase
+      .from('oferta_tiene_categoria')
+      .insert(toInsert);
+
+    if (insertError) throw insertError;
+  },
+
+  // ============================
+
   // Obtener ofertas de un comercio
   async getOfertasByComercio(
     comercioId: number,
@@ -193,8 +248,7 @@ export const comercioService = {
       throw countError;
     }
 
-    // Si hay pedidos, lanzamos error de llave foránea simulado para que el frontend sugiera archivar
-    // Esto evita borrar reseñas/categorías si la oferta no se puede eliminar
+    // Si hay pedidos, lanzamos error de llave foránea simulado
     if (count && count > 0) {
       console.log('Oferta tiene pedidos asociados, no se puede eliminar permanentemente');
       throw { code: '23503', message: 'Oferta tiene pedidos asociados' };
@@ -252,17 +306,12 @@ export const comercioService = {
     }
 
     // 2. Eliminar todas las ofertas asociadas
-    // Obtenemos todas las ofertas, incluyendo las no disponibles
     const ofertas = await this.getOfertasByComercio(id, true);
 
     for (const oferta of ofertas) {
-      // Reutilizamos deleteOferta para manejar la limpieza de cada oferta
-      // Si alguna oferta tiene pedidos (detalle_pedido) que quedaron huérfanos de pedido (raro pero posible),
-      // deleteOferta lanzará error.
       try {
         await this.deleteOferta(oferta.id);
       } catch (error: any) {
-        // Si es error de FK, propagamos
         if (error.code === '23503') {
            throw {
              code: '23503',
@@ -281,7 +330,7 @@ export const comercioService = {
       'promocion',
       'comercio_tiene_categoria',
       'comercio_membresia',
-    ];
+    ] as const;
 
     for (const table of dependencies) {
       const { error } = await supabase
