@@ -21,10 +21,14 @@ export type NewComercio = TablesInsert<'comercio'>;
 export type UpdateComercio = TablesUpdate<'comercio'>;
 
 export type CategoriaComercio = Tables<'categoria_comercio'>;
+<<<<<<< HEAD
+export type NewOferta = TablesInsert<'oferta'>;
+=======
 export type CategoriaOferta = Tables<'categoria_oferta'>;
 
 export type NewOferta = TablesInsert<'oferta'>;
 export type UpdateOferta = TablesUpdate<'oferta'>;
+>>>>>>> temp_feature
 
 // Re-exportar todo desde supabase
 export type { Database } from './supabase';

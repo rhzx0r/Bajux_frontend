@@ -1,3 +1,85 @@
+<<<<<<< HEAD
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search, Filter, Star, Clock, Phone, MapPin } from 'lucide-react-native';
+import { router } from 'expo-router';
+
+export default function ServicesScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
+  const categories = ['Todos', 'Plomería', 'Electricidad', 'Carpintería', 'Jardinería', 'Limpieza', 'Pintura'];
+
+  const services = [
+    {
+      id: '1',
+      name: 'Carlos Méndez',
+      service: 'Plomería',
+      description: 'Especialista en instalaciones y reparaciones de plomería residencial y comercial.',
+      rating: 4.8,
+      reviews: 124,
+      image: 'https://images.pexels.com/photos/8472749/pexels-photo-8472749.jpeg?auto=compress&cs=tinysrgb&w=400',
+      available: true,
+      location: 'Centro, CDMX',
+      priceRange: '$$',
+      phone: '+52 55 1234 5678',
+    },
+    {
+      id: '2',
+      name: 'María González',
+      service: 'Jardinería',
+      description: 'Diseño y mantenimiento de jardines, poda y paisajismo profesional.',
+      rating: 4.9,
+      reviews: 89,
+      image: 'https://images.pexels.com/photos/4503273/pexels-photo-4503273.jpeg?auto=compress&cs=tinysrgb&w=400',
+      available: true,
+      location: 'Roma Norte, CDMX',
+      priceRange: '$',
+      phone: '+52 55 9876 5432',
+    },
+    {
+      id: '3',
+      name: 'Juan Pérez',
+      service: 'Electricidad',
+      description: 'Instalaciones eléctricas, reparaciones y mantenimiento con certificación.',
+      rating: 4.7,
+      reviews: 156,
+      image: 'https://images.pexels.com/photos/5691608/pexels-photo-5691608.jpeg?auto=compress&cs=tinysrgb&w=400',
+      available: false,
+      location: 'Polanco, CDMX',
+      priceRange: '$$$',
+      phone: '+52 55 2468 1357',
+    },
+    {
+      id: '4',
+      name: 'Ana Rodríguez',
+      service: 'Limpieza',
+      description: 'Servicios de limpieza profunda para hogares y oficinas.',
+      rating: 4.6,
+      reviews: 78,
+      image: 'https://images.pexels.com/photos/6195943/pexels-photo-6195943.jpeg?auto=compress&cs=tinysrgb&w=400',
+      available: true,
+      location: 'Condesa, CDMX',
+      priceRange: '$',
+      phone: '+52 55 1357 2468',
+    },
+  ];
+
+  const filteredServices = services.filter(service => {
+    const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      service.service.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'Todos' || service.service === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const renderPriceRange = (range: string) => {
+    return range.split('').map((char, index) => (
+      <Text key={index} style={[styles.priceSymbol, { color: '#B8860B' }]}>
+        {char}
+      </Text>
+    ));
+=======
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -49,6 +131,7 @@ export default function ServicesScreen() {
       style: 'currency',
       currency: 'MXN',
     }).format(price);
+>>>>>>> temp_feature
   };
 
   return (
@@ -79,6 +162,16 @@ export default function ServicesScreen() {
       {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScrollView}>
         <View style={styles.categoriesContainer}>
+<<<<<<< HEAD
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category && styles.selectedCategoryButton,
+              ]}
+              onPress={() => setSelectedCategory(category)}
+=======
           <TouchableOpacity
               style={[
                 styles.categoryButton,
@@ -103,20 +196,85 @@ export default function ServicesScreen() {
                 selectedCategory === category.nombre && styles.selectedCategoryButton,
               ]}
               onPress={() => setSelectedCategory(category.nombre || '')}
+>>>>>>> temp_feature
             >
               <Text
                 style={[
                   styles.categoryButtonText,
+<<<<<<< HEAD
+                  selectedCategory === category && styles.selectedCategoryButtonText,
+                ]}
+              >
+                {category}
+=======
                   selectedCategory === category.nombre && styles.selectedCategoryButtonText,
                 ]}
               >
                 {category.nombre}
+>>>>>>> temp_feature
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
 
+<<<<<<< HEAD
+      {/* Services List */}
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.servicesList}>
+        {filteredServices.map((service) => (
+          <TouchableOpacity
+            key={service.id}
+            style={styles.serviceCard}
+            onPress={() => router.push(`/service/${service.id}`)}
+          >
+            <Image source={{ uri: service.image }} style={styles.serviceImage} />
+            <View style={styles.serviceContent}>
+              <View style={styles.serviceHeader}>
+                <Text style={styles.serviceName}>{service.name}</Text>
+                <View style={styles.availabilityContainer}>
+                  <View style={[styles.availabilityDot, service.available && styles.availableDot]} />
+                  <Text style={[styles.availabilityText, service.available && styles.availableText]}>
+                    {service.available ? 'Disponible' : 'Ocupado'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.serviceTypeContainer}>
+                <Text style={styles.serviceType}>{service.service}</Text>
+                <View style={styles.priceContainer}>
+                  {renderPriceRange(service.priceRange)}
+                </View>
+              </View>
+
+              <Text style={styles.serviceDescription} numberOfLines={2}>
+                {service.description}
+              </Text>
+
+              <View style={styles.serviceFooter}>
+                <View style={styles.ratingContainer}>
+                  <Star size={16} color="#FFD700" fill="#FFD700" />
+                  <Text style={styles.ratingText}>{service.rating}</Text>
+                  <Text style={styles.reviewsText}>({service.reviews} reseñas)</Text>
+                </View>
+
+                <View style={styles.locationContainer}>
+                  <MapPin size={14} color="#B8860B" />
+                  <Text style={styles.locationText}>{service.location}</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.contactButton}
+                onPress={() => {/* Handle contact */ }}
+              >
+                <Phone size={16} color="#FFFFFF" />
+                <Text style={styles.contactButtonText}>Contactar</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+=======
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#8B4513" />
@@ -179,6 +337,7 @@ export default function ServicesScreen() {
           )}
         </ScrollView>
       )}
+>>>>>>> temp_feature
     </SafeAreaView>
   );
 }

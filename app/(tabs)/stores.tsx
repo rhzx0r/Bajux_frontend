@@ -1,3 +1,81 @@
+<<<<<<< HEAD
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search, Filter, Star, Clock, MapPin, Package } from 'lucide-react-native';
+import { router } from 'expo-router';
+
+export default function StoresScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
+  const categories = ['Todos', 'Ferretería', 'Papelería', 'Restaurante', 'Farmacia', 'Supermercado', 'Ropa'];
+
+  const stores = [
+    {
+      id: '1',
+      name: 'Ferretería El Martillo',
+      category: 'Ferretería',
+      description: 'Todo lo que necesitas para construcción y reparaciones del hogar.',
+      rating: 4.7,
+      reviews: 245,
+      image: 'https://images.pexels.com/photos/1094767/pexels-photo-1094767.jpeg?auto=compress&cs=tinysrgb&w=400',
+      location: 'Av. Insurgentes 123, CDMX',
+      isOpen: true,
+      openHours: '8:00 AM - 8:00 PM',
+      productsCount: 156,
+      delivery: true,
+    },
+    {
+      id: '2',
+      name: 'Papelería Moderna',
+      category: 'Papelería',
+      description: 'Artículos escolares, oficina y manualidades de calidad.',
+      rating: 4.6,
+      reviews: 132,
+      image: 'https://images.pexels.com/photos/159751/book-address-book-learning-learn-159751.jpeg?auto=compress&cs=tinysrgb&w=400',
+      location: 'Col. Roma, CDMX',
+      isOpen: true,
+      openHours: '9:00 AM - 7:00 PM',
+      productsCount: 89,
+      delivery: false,
+    },
+    {
+      id: '3',
+      name: 'Restaurante La Cocina',
+      category: 'Restaurante',
+      description: 'Comida casera y tradicional mexicana con ingredientes frescos.',
+      rating: 4.8,
+      reviews: 189,
+      image: 'https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=400',
+      location: 'Centro Histórico, CDMX',
+      isOpen: false,
+      openHours: '12:00 PM - 10:00 PM',
+      productsCount: 45,
+      delivery: true,
+    },
+    {
+      id: '4',
+      name: 'Farmacia San José',
+      category: 'Farmacia',
+      description: 'Medicamentos y productos de salud con servicio 24 horas.',
+      rating: 4.5,
+      reviews: 298,
+      image: 'https://images.pexels.com/photos/356054/pexels-photo-356054.jpeg?auto=compress&cs=tinysrgb&w=400',
+      location: 'Polanco, CDMX',
+      isOpen: true,
+      openHours: '24 horas',
+      productsCount: 234,
+      delivery: true,
+    },
+  ];
+
+  const filteredStores = stores.filter(store => {
+    const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      store.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'Todos' || store.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+=======
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,6 +116,7 @@ export default function StoresScreen() {
     // Basic client-side filtering if needed on top of API search
     // Using API search query for now, client side category filtering could be added if we fetched relations.
     return true;
+>>>>>>> temp_feature
   });
 
   return (
@@ -68,6 +147,16 @@ export default function StoresScreen() {
       {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScrollView}>
         <View style={styles.categoriesContainer}>
+<<<<<<< HEAD
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category && styles.selectedCategoryButton,
+              ]}
+              onPress={() => setSelectedCategory(category)}
+=======
           <TouchableOpacity
               style={[
                 styles.categoryButton,
@@ -92,20 +181,85 @@ export default function StoresScreen() {
                 selectedCategory === category.nombre && styles.selectedCategoryButton,
               ]}
               onPress={() => setSelectedCategory(category.nombre || '')}
+>>>>>>> temp_feature
             >
               <Text
                 style={[
                   styles.categoryButtonText,
+<<<<<<< HEAD
+                  selectedCategory === category && styles.selectedCategoryButtonText,
+                ]}
+              >
+                {category}
+=======
                   selectedCategory === category.nombre && styles.selectedCategoryButtonText,
                 ]}
               >
                 {category.nombre}
+>>>>>>> temp_feature
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
 
+<<<<<<< HEAD
+      {/* Stores List */}
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.storesList}>
+        {filteredStores.map((store) => (
+          <TouchableOpacity
+            key={store.id}
+            style={styles.storeCard}
+            onPress={() => router.push(`/store/${store.id}`)}
+          >
+            <Image source={{ uri: store.image }} style={styles.storeImage} />
+            <View style={styles.storeContent}>
+              <View style={styles.storeHeader}>
+                <Text style={styles.storeName}>{store.name}</Text>
+                <View style={[styles.statusBadge, store.isOpen && styles.openBadge]}>
+                  <Text style={[styles.statusText, store.isOpen && styles.openText]}>
+                    {store.isOpen ? 'Abierto' : 'Cerrado'}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.storeCategory}>{store.category}</Text>
+              <Text style={styles.storeDescription} numberOfLines={2}>
+                {store.description}
+              </Text>
+
+              <View style={styles.storeInfo}>
+                <View style={styles.ratingContainer}>
+                  <Star size={16} color="#FFD700" fill="#FFD700" />
+                  <Text style={styles.ratingText}>{store.rating}</Text>
+                  <Text style={styles.reviewsText}>({store.reviews})</Text>
+                </View>
+
+                <View style={styles.productsContainer}>
+                  <Package size={16} color="#B8860B" />
+                  <Text style={styles.productsText}>{store.productsCount} productos</Text>
+                </View>
+              </View>
+
+              <View style={styles.locationContainer}>
+                <MapPin size={14} color="#B8860B" />
+                <Text style={styles.locationText}>{store.location}</Text>
+              </View>
+
+              <View style={styles.hoursContainer}>
+                <Clock size={14} color="#8B4513" />
+                <Text style={styles.hoursText}>{store.openHours}</Text>
+                {store.delivery && (
+                  <View style={styles.deliveryBadge}>
+                    <Text style={styles.deliveryText}>Entrega</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+=======
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#8B4513" />
@@ -169,6 +323,7 @@ export default function StoresScreen() {
           )}
         </ScrollView>
       )}
+>>>>>>> temp_feature
     </SafeAreaView>
   );
 }

@@ -5,10 +5,13 @@ import type {
   UpdateComercio,
   Comercio,
   CategoriaComercio,
+<<<<<<< HEAD
+=======
   CategoriaOferta,
   Oferta,
   NewOferta,
   UpdateOferta,
+>>>>>>> temp_feature
 } from '../types';
 
 export const comercioService = {
@@ -47,6 +50,9 @@ export const comercioService = {
       .from('comercio')
       .select('*')
       .eq('propietario_id', session.user.id)
+<<<<<<< HEAD
+      .order('created_at', { ascending: false });
+=======
       .order('id', { ascending: false });
 
     if (error) throw error;
@@ -80,6 +86,7 @@ export const comercioService = {
     }
 
     const { data, error } = await query.order('id', { ascending: false });
+>>>>>>> temp_feature
 
     if (error) throw error;
     return data || [];
@@ -133,6 +140,8 @@ export const comercioService = {
 
     if (error) throw error;
   },
+<<<<<<< HEAD
+=======
 
   // === Categorías de Oferta ===
 
@@ -354,4 +363,5 @@ export const comercioService = {
 
     console.log('Comercio eliminado correctamente:', id);
   },
+>>>>>>> temp_feature
 };

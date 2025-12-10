@@ -1,3 +1,58 @@
+<<<<<<< HEAD
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search, MapPin, Star, Clock } from 'lucide-react-native';
+import { router } from 'expo-router';
+
+export default function HomeScreen() {
+  const featuredServices = [
+    {
+      id: 1,
+      name: 'Carlos Méndez',
+      service: 'Plomería',
+      rating: 4.8,
+      image: 'https://images.pexels.com/photos/8472749/pexels-photo-8472749.jpeg?auto=compress&cs=tinysrgb&w=400',
+      available: true,
+    },
+    {
+      id: 2,
+      name: 'María González',
+      service: 'Jardinería',
+      rating: 4.9,
+      image: 'https://images.pexels.com/photos/4503273/pexels-photo-4503273.jpeg?auto=compress&cs=tinysrgb&w=400',
+      available: true,
+    },
+  ];
+
+  const featuredStores = [
+    {
+      id: 1,
+      name: 'Ferretería El Martillo',
+      category: 'Ferretería',
+      image: 'https://images.pexels.com/photos/1094767/pexels-photo-1094767.jpeg?auto=compress&cs=tinysrgb&w=400',
+      rating: 4.7,
+      products: 156,
+    },
+    {
+      id: 2,
+      name: 'Papelería Moderna',
+      category: 'Papelería',
+      image: 'https://images.pexels.com/photos/159751/book-address-book-learning-learn-159751.jpeg?auto=compress&cs=tinysrgb&w=400',
+      rating: 4.6,
+      products: 89,
+    },
+  ];
+
+  const categories = [
+    { name: 'Plomería', icon: '🔧', count: 45 },
+    { name: 'Electricidad', icon: '⚡', count: 32 },
+    { name: 'Carpintería', icon: '🔨', count: 28 },
+    { name: 'Jardinería', icon: '🌱', count: 21 },
+    { name: 'Limpieza', icon: '🧹', count: 38 },
+    { name: 'Pintura', icon: '🎨', count: 19 },
+  ];
+=======
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,6 +91,7 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
+>>>>>>> temp_feature
 
   return (
     <SafeAreaView style={styles.container}>
@@ -52,10 +108,15 @@ export default function HomeScreen() {
             <Search size={20} color="#8B4513" />
             <TextInput
               style={styles.searchInput}
+<<<<<<< HEAD
+              placeholder="¿Qué servicio necesitas?"
+              placeholderTextColor="#8B4513"
+=======
               placeholder="¿Qué servicio o tienda buscas?"
               placeholderTextColor="#8B4513"
               value={searchQuery}
               onChangeText={setSearchQuery}
+>>>>>>> temp_feature
             />
           </View>
           {/* <TouchableOpacity style={styles.locationButton}>
@@ -63,6 +124,78 @@ export default function HomeScreen() {
           </TouchableOpacity> */}
         </View>
 
+<<<<<<< HEAD
+        {/* Categories */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Categorías Populares</Text>
+          <View style={styles.categoriesGrid}>
+            {categories.map((category, index) => (
+              <TouchableOpacity key={index} style={styles.categoryCard}>
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+                <Text style={styles.categoryName}>{category.name}</Text>
+                <Text style={styles.categoryCount}>{category.count} servicios</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Featured Services */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Servicios Destacados</Text>
+            <TouchableOpacity onPress={() => router.push('/services')}>
+              <Text style={styles.seeAllText}>Ver todos</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {featuredServices.map((service) => (
+              <TouchableOpacity key={service.id} style={styles.serviceCard} onPress={() => router.push(`/service/${service.id}`)}>
+                <Image source={{ uri: service.image }} style={styles.serviceImage} />
+                <View style={styles.serviceInfo}>
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <Text style={styles.serviceType}>{service.service}</Text>
+                  <View style={styles.serviceRating}>
+                    <Star size={14} color="#FFD700" fill="#FFD700" />
+                    <Text style={styles.ratingText}>{service.rating}</Text>
+                  </View>
+                  <View style={[styles.availabilityBadge, service.available && styles.availableBadge]}>
+                    <Clock size={12} color={service.available ? '#4CAF50' : '#FF9800'} />
+                    <Text style={[styles.availabilityText, service.available && styles.availableText]}>
+                      {service.available ? 'Disponible' : 'Ocupado'}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Featured Stores */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Tiendas Destacadas</Text>
+            <TouchableOpacity onPress={() => router.push('/stores')}>
+              <Text style={styles.seeAllText}>Ver todas</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+            {featuredStores.map((store) => (
+              <TouchableOpacity key={store.id} style={styles.storeCard} onPress={() => router.push(`/store/${store.id}`)}>
+                <Image source={{ uri: store.image }} style={styles.storeImage} />
+                <View style={styles.storeInfo}>
+                  <Text style={styles.storeName}>{store.name}</Text>
+                  <Text style={styles.storeCategory}>{store.category}</Text>
+                  <View style={styles.storeRating}>
+                    <Star size={14} color="#FFD700" fill="#FFD700" />
+                    <Text style={styles.ratingText}>{store.rating}</Text>
+                    <Text style={styles.productCount}>• {store.products} productos</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+=======
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#8B4513" />
@@ -165,6 +298,7 @@ export default function HomeScreen() {
             </View>
           </>
         )}
+>>>>>>> temp_feature
       </ScrollView>
     </SafeAreaView>
   );
@@ -249,6 +383,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'space-between',
   },
+<<<<<<< HEAD
+  categoryCard: {
+    width: '30%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+=======
   categoriesRow: {
     flexDirection: 'row',
     paddingRight: 20,
@@ -260,6 +403,7 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     marginRight: 12,
+>>>>>>> temp_feature
     borderWidth: 1,
     borderColor: '#D2B48C',
     shadowColor: '#000',
@@ -271,7 +415,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+<<<<<<< HEAD
+  categoryIcon: {
+    fontSize: 24,
+=======
   categoryIconContainer: {
+>>>>>>> temp_feature
     marginBottom: 8,
   },
   categoryName: {
@@ -289,6 +438,8 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     paddingLeft: 20,
   },
+<<<<<<< HEAD
+=======
   loadingContainer: {
     padding: 40,
     alignItems: 'center',
@@ -303,6 +454,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     padding: 20,
   },
+>>>>>>> temp_feature
   serviceCard: {
     width: 200,
     backgroundColor: '#FFFFFF',

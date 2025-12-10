@@ -82,6 +82,8 @@ export const storageService = {
       return null;
     }
   },
+<<<<<<< HEAD
+=======
 
   async uploadOfertaImage(
     comercioId: number,
@@ -113,4 +115,5 @@ export const storageService = {
       return null;
     }
   },
+>>>>>>> temp_feature
 };

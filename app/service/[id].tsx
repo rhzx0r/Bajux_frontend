@@ -1,3 +1,82 @@
+<<<<<<< HEAD
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Star, MapPin, Clock, Phone, MessageCircle, Calendar } from 'lucide-react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+
+export default function ServiceDetailScreen() {
+  const { id } = useLocalSearchParams();
+
+  // Mock service data - in a real app, fetch by ID
+  const service = {
+    id: '1',
+    name: 'Carlos Méndez',
+    service: 'Plomería',
+    description: 'Especialista en instalaciones y reparaciones de plomería residencial y comercial. Con más de 15 años de experiencia, ofrezco servicios de alta calidad con garantía incluida.',
+    rating: 4.8,
+    reviews: 124,
+    image: 'https://images.pexels.com/photos/8472749/pexels-photo-8472749.jpeg?auto=compress&cs=tinysrgb&w=400',
+    available: true,
+    location: 'Centro, CDMX',
+    priceRange: '$$',
+    phone: '+52 55 1234 5678',
+    experience: '15 años',
+    responseTime: '30 min',
+    completedJobs: 450,
+    services: [
+      'Instalación de tuberías',
+      'Reparación de fugas',
+      'Destapado de drenajes',
+      'Instalación de calentadores',
+      'Mantenimiento preventivo',
+    ],
+    availability: {
+      monday: '8:00 AM - 6:00 PM',
+      tuesday: '8:00 AM - 6:00 PM',
+      wednesday: '8:00 AM - 6:00 PM',
+      thursday: '8:00 AM - 6:00 PM',
+      friday: '8:00 AM - 6:00 PM',
+      saturday: '9:00 AM - 2:00 PM',
+      sunday: 'Cerrado',
+    },
+  };
+
+  const reviews = [
+    {
+      id: 1,
+      name: 'María González',
+      rating: 5,
+      comment: 'Excelente servicio, muy profesional y puntual. Resolvió el problema de plomería rápidamente.',
+      date: '2024-01-15',
+    },
+    {
+      id: 2,
+      name: 'Juan López',
+      rating: 5,
+      comment: 'Trabajo de calidad y precio justo. Muy recomendado.',
+      date: '2024-01-10',
+    },
+    {
+      id: 3,
+      name: 'Ana Rodríguez',
+      rating: 4,
+      comment: 'Buen servicio, llegó a tiempo y solucionó el problema.',
+      date: '2024-01-05',
+    },
+  ];
+
+  const renderPriceRange = (range: string) => {
+    return range.split('').map((char, index) => (
+      <Text key={index} style={[styles.priceSymbol, { color: '#B8860B' }]}>
+        {char}
+      </Text>
+    ));
+  };
+
+  const handleCall = () => {
+    Linking.openURL(`tel:${service.phone}`);
+=======
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -56,6 +135,7 @@ export default function ServiceDetailScreen() {
     // Note: Phone number is not in `oferta` table. This would require fetching the commerce owner's profile or commerce details.
     // For now, I'll assume we can't make the call without that data, or alert that it's not available.
     Alert.alert('Información', 'Teléfono no disponible en este momento');
+>>>>>>> temp_feature
   };
 
   const handleMessage = () => {
@@ -66,6 +146,8 @@ export default function ServiceDetailScreen() {
     Alert.alert('Reservar cita', 'Función de reservas en desarrollo');
   };
 
+<<<<<<< HEAD
+=======
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -99,14 +181,19 @@ export default function ServiceDetailScreen() {
     );
   }
 
+>>>>>>> temp_feature
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+<<<<<<< HEAD
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+=======
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
+>>>>>>> temp_feature
           <ArrowLeft size={24} color="#8B4513" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil del Servicio</Text>
@@ -115,6 +202,14 @@ export default function ServiceDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Service Hero */}
         <View style={styles.serviceHero}>
+<<<<<<< HEAD
+          <Image source={{ uri: service.image }} style={styles.serviceImage} />
+          <View style={styles.serviceOverlay}>
+            <View style={[styles.availabilityBadge, service.available && styles.availableBadge]}>
+              <Clock size={12} color={service.available ? '#4CAF50' : '#FF9800'} />
+              <Text style={[styles.availabilityText, service.available && styles.availableText]}>
+                {service.available ? 'Disponible' : 'Ocupado'}
+=======
           <Image
             source={{
               uri: service.imagen_url || 'https://via.placeholder.com/400',
@@ -139,6 +234,7 @@ export default function ServiceDetailScreen() {
                 ]}
               >
                 {service.disponible ? 'Disponible' : 'Ocupado'}
+>>>>>>> temp_feature
               </Text>
             </View>
           </View>
@@ -147,6 +243,29 @@ export default function ServiceDetailScreen() {
         {/* Service Info */}
         <View style={styles.serviceInfo}>
           <View style={styles.serviceHeader}>
+<<<<<<< HEAD
+            <Text style={styles.serviceName}>{service.name}</Text>
+            <View style={styles.priceContainer}>
+              {renderPriceRange(service.priceRange)}
+            </View>
+          </View>
+
+          <Text style={styles.serviceType}>{service.service}</Text>
+
+          <View style={styles.ratingContainer}>
+            <Star size={20} color="#FFD700" fill="#FFD700" />
+            <Text style={styles.ratingText}>{service.rating}</Text>
+            <Text style={styles.reviewsText}>({service.reviews} reseñas)</Text>
+          </View>
+
+          <Text style={styles.serviceDescription}>{service.description}</Text>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{service.experience}</Text>
+=======
             <Text style={styles.serviceName}>{service.nombre}</Text>
             <View style={styles.priceContainer}>
               <Text style={styles.priceSymbol}>
@@ -171,10 +290,81 @@ export default function ServiceDetailScreen() {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>N/A</Text>
+>>>>>>> temp_feature
             <Text style={styles.statLabel}>Experiencia</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
+<<<<<<< HEAD
+            <Text style={styles.statNumber}>{service.completedJobs}</Text>
+            <Text style={styles.statLabel}>Trabajos</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{service.responseTime}</Text>
+            <Text style={styles.statLabel}>Respuesta</Text>
+          </View>
+        </View>
+
+        {/* Services List */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Servicios Ofrecidos</Text>
+          {service.services.map((item, index) => (
+            <View key={index} style={styles.serviceItem}>
+              <Text style={styles.serviceItemText}>• {item}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Contact Info */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Información de Contacto</Text>
+          <View style={styles.contactRow}>
+            <MapPin size={18} color="#B8860B" />
+            <Text style={styles.contactText}>{service.location}</Text>
+          </View>
+          <TouchableOpacity style={styles.contactRow} onPress={handleCall}>
+            <Phone size={18} color="#B8860B" />
+            <Text style={styles.contactText}>{service.phone}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Availability */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Horarios de Atención</Text>
+          {Object.entries(service.availability).map(([day, hours]) => (
+            <View key={day} style={styles.availabilityRow}>
+              <Text style={styles.dayText}>
+                {day.charAt(0).toUpperCase() + day.slice(1)}:
+              </Text>
+              <Text style={styles.hoursText}>{hours}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Reviews */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Reseñas Recientes</Text>
+          {reviews.slice(0, 3).map((review) => (
+            <View key={review.id} style={styles.reviewCard}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewName}>{review.name}</Text>
+                <View style={styles.reviewRating}>
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      color={i < review.rating ? '#FFD700' : '#D2B48C'}
+                      fill={i < review.rating ? '#FFD700' : 'none'}
+                    />
+                  ))}
+                </View>
+              </View>
+              <Text style={styles.reviewComment}>{review.comment}</Text>
+              <Text style={styles.reviewDate}>{review.date}</Text>
+            </View>
+          ))}
+=======
             <Text style={styles.statNumber}>N/A</Text>
             <Text style={styles.statLabel}>Trabajos</Text>
           </View>
@@ -187,6 +377,7 @@ export default function ServiceDetailScreen() {
           <Text style={styles.contactText}>
             Para más detalles contacte al proveedor.
           </Text>
+>>>>>>> temp_feature
         </View>
       </ScrollView>
 
@@ -196,6 +387,18 @@ export default function ServiceDetailScreen() {
           <Phone size={20} color="#8B4513" />
           <Text style={styles.actionButtonText}>Llamar</Text>
         </TouchableOpacity>
+<<<<<<< HEAD
+
+        <TouchableOpacity style={styles.actionButton} onPress={handleMessage}>
+          <MessageCircle size={20} color="#8B4513" />
+          <Text style={styles.actionButtonText}>Mensaje</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.primaryButton} onPress={handleBooking}>
+          <Calendar size={20} color="#FFFFFF" />
+          <Text style={styles.primaryButtonText}>Reservar</Text>
+        </TouchableOpacity>
+=======
 
         {/*<TouchableOpacity style={styles.actionButton} onPress={handleMessage}>
           <MessageCircle size={20} color="#8B4513" />
@@ -206,6 +409,7 @@ export default function ServiceDetailScreen() {
           <Calendar size={20} color="#FFFFFF" />
           <Text style={styles.primaryButtonText}>Reservar</Text>
         </TouchableOpacity>*/}
+>>>>>>> temp_feature
       </View>
     </SafeAreaView>
   );
@@ -216,6 +420,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FEFEFE',
   },
+<<<<<<< HEAD
+=======
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -230,6 +436,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#8B4513',
   },
+>>>>>>> temp_feature
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -482,4 +689,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 6,
   },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> temp_feature
