@@ -1,56 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, MapPin, Star, Clock } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { comercioService } from '../../lib/comercio';
+import { Comercio, Oferta, CategoriaComercio } from '../../types';
 
 export default function HomeScreen() {
-  const featuredServices = [
-    {
-      id: 1,
-      name: 'Carlos Méndez',
-      service: 'Plomería',
-      rating: 4.8,
-      image: 'https://images.pexels.com/photos/8472749/pexels-photo-8472749.jpeg?auto=compress&cs=tinysrgb&w=400',
-      available: true,
-    },
-    {
-      id: 2,
-      name: 'María González',
-      service: 'Jardinería',
-      rating: 4.9,
-      image: 'https://images.pexels.com/photos/4503273/pexels-photo-4503273.jpeg?auto=compress&cs=tinysrgb&w=400',
-      available: true,
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [services, setServices] = useState<Oferta[]>([]);
+  const [stores, setStores] = useState<Comercio[]>([]);
+  const [categories, setCategories] = useState<CategoriaComercio[]>([]);
 
-  const featuredStores = [
-    {
-      id: 1,
-      name: 'Ferretería El Martillo',
-      category: 'Ferretería',
-      image: 'https://images.pexels.com/photos/1094767/pexels-photo-1094767.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.7,
-      products: 156,
-    },
-    {
-      id: 2,
-      name: 'Papelería Moderna',
-      category: 'Papelería',
-      image: 'https://images.pexels.com/photos/159751/book-address-book-learning-learn-159751.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.6,
-      products: 89,
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, [searchQuery]);
 
-  const categories = [
-    { name: 'Plomería', icon: '🔧', count: 45 },
-    { name: 'Electricidad', icon: '⚡', count: 32 },
-    { name: 'Carpintería', icon: '🔨', count: 28 },
-    { name: 'Jardinería', icon: '🌱', count: 21 },
-    { name: 'Limpieza', icon: '🧹', count: 38 },
-    { name: 'Pintura', icon: '🎨', count: 19 },
-  ];
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [fetchedServices, fetchedStores, fetchedCategories] = await Promise.all([
+        comercioService.getAllServices(searchQuery),
+        comercioService.getAllComercios(searchQuery),
+        comercioService.getCategoriasComercio(),
+      ]);
+
+      setServices(fetchedServices);
+      setStores(fetchedStores);
+      setCategories(fetchedCategories);
+    } catch (error) {
+      console.error('Error loading home data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,8 +51,10 @@ export default function HomeScreen() {
             <Search size={20} color="#8B4513" />
             <TextInput
               style={styles.searchInput}
-              placeholder="¿Qué servicio necesitas?"
+              placeholder="¿Qué servicio o tienda buscas?"
               placeholderTextColor="#8B4513"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
           {/* <TouchableOpacity style={styles.locationButton}>
@@ -76,76 +62,106 @@ export default function HomeScreen() {
           </TouchableOpacity> */}
         </View>
 
-        {/* Categories */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categorías Populares</Text>
-          <View style={styles.categoriesGrid}>
-            {categories.map((category, index) => (
-              <TouchableOpacity key={index} style={styles.categoryCard}>
-                <Text style={styles.categoryIcon}>{category.icon}</Text>
-                <Text style={styles.categoryName}>{category.name}</Text>
-                <Text style={styles.categoryCount}>{category.count} servicios</Text>
-              </TouchableOpacity>
-            ))}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#8B4513" />
+            <Text style={styles.loadingText}>Cargando...</Text>
           </View>
-        </View>
+        ) : (
+          <>
+            {/* Categories */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Categorías Populares</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+                 <View style={styles.categoriesRow}>
+                    {categories.length > 0 ? (
+                    categories.map((category) => (
+                      <TouchableOpacity key={category.id} style={styles.categoryCard}>
+                        {/* Placeholder icon since we don't have icons in DB yet */}
+                        <Text style={styles.categoryIcon}>📦</Text>
+                        <Text style={styles.categoryName}>{category.nombre}</Text>
+                        <Text style={styles.categoryCount}>{category.descripcion}</Text>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <Text style={styles.emptyText}>No hay categorías disponibles</Text>
+                  )}
+                 </View>
+              </ScrollView>
+            </View>
 
-        {/* Featured Services */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Servicios Destacados</Text>
-            <TouchableOpacity onPress={() => router.push('/services')}>
-              <Text style={styles.seeAllText}>Ver todos</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {featuredServices.map((service) => (
-              <TouchableOpacity key={service.id} style={styles.serviceCard} onPress={() => router.push(`/service/${service.id}`)}>
-                <Image source={{ uri: service.image }} style={styles.serviceImage} />
-                <View style={styles.serviceInfo}>
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.serviceType}>{service.service}</Text>
-                  <View style={styles.serviceRating}>
-                    <Star size={14} color="#FFD700" fill="#FFD700" />
-                    <Text style={styles.ratingText}>{service.rating}</Text>
-                  </View>
-                  <View style={[styles.availabilityBadge, service.available && styles.availableBadge]}>
-                    <Clock size={12} color={service.available ? '#4CAF50' : '#FF9800'} />
-                    <Text style={[styles.availabilityText, service.available && styles.availableText]}>
-                      {service.available ? 'Disponible' : 'Ocupado'}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            {/* Featured Services */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Servicios Destacados</Text>
+                {/* <TouchableOpacity onPress={() => router.push('/services')}>
+                  <Text style={styles.seeAllText}>Ver todos</Text>
+                </TouchableOpacity> */}
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+                {services.length > 0 ? (
+                  services.map((service) => (
+                    <TouchableOpacity key={service.id} style={styles.serviceCard} onPress={() => router.push(`/service/${service.id}`)}>
+                      <Image
+                        source={{ uri: service.imagen_url || 'https://via.placeholder.com/200' }}
+                        style={styles.serviceImage}
+                      />
+                      <View style={styles.serviceInfo}>
+                        <Text style={styles.serviceName} numberOfLines={1}>{service.nombre}</Text>
+                        <Text style={styles.serviceType} numberOfLines={2}>{service.descripcion}</Text>
+                        <View style={styles.serviceRating}>
+                          <Star size={14} color="#FFD700" fill="#FFD700" />
+                          <Text style={styles.ratingText}>N/A</Text>
+                        </View>
+                        <View style={[styles.availabilityBadge, service.disponible && styles.availableBadge]}>
+                          <Clock size={12} color={service.disponible ? '#4CAF50' : '#FF9800'} />
+                          <Text style={[styles.availabilityText, service.disponible && styles.availableText]}>
+                            {service.disponible ? 'Disponible' : 'Ocupado'}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.emptyText}>No hay servicios que coincidan con tu búsqueda</Text>
+                )}
+              </ScrollView>
+            </View>
 
-        {/* Featured Stores */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tiendas Destacadas</Text>
-            <TouchableOpacity onPress={() => router.push('/stores')}>
-              <Text style={styles.seeAllText}>Ver todas</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {featuredStores.map((store) => (
-              <TouchableOpacity key={store.id} style={styles.storeCard} onPress={() => router.push(`/store/${store.id}`)}>
-                <Image source={{ uri: store.image }} style={styles.storeImage} />
-                <View style={styles.storeInfo}>
-                  <Text style={styles.storeName}>{store.name}</Text>
-                  <Text style={styles.storeCategory}>{store.category}</Text>
-                  <View style={styles.storeRating}>
-                    <Star size={14} color="#FFD700" fill="#FFD700" />
-                    <Text style={styles.ratingText}>{store.rating}</Text>
-                    <Text style={styles.productCount}>• {store.products} productos</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            {/* Featured Stores */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Tiendas Destacadas</Text>
+                {/* <TouchableOpacity onPress={() => router.push('/stores')}>
+                  <Text style={styles.seeAllText}>Ver todas</Text>
+                </TouchableOpacity> */}
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+                {stores.length > 0 ? (
+                  stores.map((store) => (
+                    <TouchableOpacity key={store.id} style={styles.storeCard} onPress={() => router.push(`/store/${store.id}`)}>
+                      <Image
+                        source={{ uri: store.imagen_url || 'https://via.placeholder.com/200' }}
+                        style={styles.storeImage}
+                      />
+                      <View style={styles.storeInfo}>
+                        <Text style={styles.storeName} numberOfLines={1}>{store.nombre}</Text>
+                        <Text style={styles.storeCategory} numberOfLines={1}>{store.ubicacion || 'Sin ubicación'}</Text>
+                        <View style={styles.storeRating}>
+                           {/* Rating placeholder */}
+                          <Star size={14} color="#FFD700" fill="#FFD700" />
+                          <Text style={styles.ratingText}>N/A</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.emptyText}>No hay tiendas que coincidan con tu búsqueda</Text>
+                )}
+              </ScrollView>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -230,13 +246,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'space-between',
   },
+  categoriesRow: {
+    flexDirection: 'row',
+    paddingRight: 20,
+  },
   categoryCard: {
-    width: '30%',
+    width: 100,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
-    marginBottom: 12,
+    marginRight: 12,
     borderWidth: 1,
     borderColor: '#D2B48C',
     shadowColor: '#000',
@@ -266,6 +286,20 @@ const styles = StyleSheet.create({
   },
   horizontalScroll: {
     paddingLeft: 20,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#8B4513',
+  },
+  emptyText: {
+    color: '#888',
+    fontStyle: 'italic',
+    padding: 20,
   },
   serviceCard: {
     width: 200,

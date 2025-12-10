@@ -52,6 +52,38 @@ export const comercioService = {
     return data || [];
   },
 
+  // Obtener todos los comercios (público)
+  async getAllComercios(searchQuery: string = ''): Promise<Comercio[]> {
+    let query = supabase.from('comercio').select('*');
+
+    if (searchQuery) {
+      query = query.ilike('nombre', `%${searchQuery}%`);
+    }
+
+    const { data, error } = await query.order('id', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Obtener todos los servicios destacados (ofertas tipo servicio)
+  async getAllServices(searchQuery: string = ''): Promise<Oferta[]> {
+    let query = supabase
+      .from('oferta')
+      .select('*')
+      .eq('tipo', 'servicio')
+      .eq('disponible', true);
+
+    if (searchQuery) {
+      query = query.ilike('nombre', `%${searchQuery}%`);
+    }
+
+    const { data, error } = await query.order('id', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // Obtener un comercio específico
   async getComercioById(id: number): Promise<Comercio | null> {
     const { data, error } = await supabase
