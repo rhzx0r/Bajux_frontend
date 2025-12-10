@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Store, Plus } from 'lucide-react-native';
+import { ArrowLeft, Store, Plus, Trash2 } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../providers/AuthProvider';
 import { comercioService } from '../../lib/comercio';
@@ -41,6 +42,46 @@ export default function MyShopsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteComercio = async (id: number, nombre: string) => {
+    Alert.alert(
+      'Eliminar Comercio',
+      `¿Estás seguro que deseas eliminar "${nombre}"? Esta acción eliminará todas las ofertas y datos asociados permanentemente.`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await comercioService.deleteComercio(id);
+              // Optimistically update the list
+              setMisComercios(prev => prev.filter(c => c.id !== id));
+              Alert.alert('Éxito', 'Comercio eliminado correctamente');
+            } catch (error: any) {
+              console.error('Error eliminando comercio:', error);
+              if (error.code === '23503') {
+                Alert.alert(
+                  'No se puede eliminar',
+                  'Este comercio tiene pedidos asociados y no puede ser eliminado para preservar el historial.'
+                );
+              } else {
+                Alert.alert('Error', 'No se pudo eliminar el comercio. Inténtalo de nuevo.');
+              }
+            } finally {
+              setLoading(false);
+              // Reload to ensure sync
+              loadMisComercios();
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleComercioCreated = async () => {
@@ -89,6 +130,13 @@ export default function MyShopsScreen() {
                   {comercio.descripcion}
                 </Text>
               </View>
+
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeleteComercio(comercio.id, comercio.nombre || 'Comercio')}
+              >
+                <Trash2 size={20} color="#EF4444" />
+              </TouchableOpacity>
             </TouchableOpacity>
           ))
         ) : (
@@ -170,6 +218,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
   },
   comercioImage: {
     width: 60,
@@ -180,6 +229,7 @@ const styles = StyleSheet.create({
   comercioInfo: {
     flex: 1,
     marginLeft: 16,
+    paddingRight: 30, // Space for delete button
   },
   comercioName: {
     fontSize: 16,
@@ -244,5 +294,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#666',
     fontSize: 12,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: '#FEF2F2',
   },
 });

@@ -231,4 +231,78 @@ export const comercioService = {
 
     console.log('Oferta eliminada correctamente:', id);
   },
+
+  // Eliminar un comercio y sus dependencias
+  async deleteComercio(id: number): Promise<void> {
+    console.log('Intentando eliminar comercio:', id);
+
+    // 1. Verificar si existen pedidos asociados al comercio
+    const { count: pedidoCount, error: pedidoError } = await supabase
+      .from('pedido')
+      .select('*', { count: 'exact', head: true })
+      .eq('comercio_id', id);
+
+    if (pedidoError) throw pedidoError;
+
+    if (pedidoCount && pedidoCount > 0) {
+      throw {
+        code: '23503',
+        message: 'El comercio tiene pedidos asociados y no puede ser eliminado.',
+      };
+    }
+
+    // 2. Eliminar todas las ofertas asociadas
+    // Obtenemos todas las ofertas, incluyendo las no disponibles
+    const ofertas = await this.getOfertasByComercio(id, true);
+
+    for (const oferta of ofertas) {
+      // Reutilizamos deleteOferta para manejar la limpieza de cada oferta
+      // Si alguna oferta tiene pedidos (detalle_pedido) que quedaron huérfanos de pedido (raro pero posible),
+      // deleteOferta lanzará error.
+      try {
+        await this.deleteOferta(oferta.id);
+      } catch (error: any) {
+        // Si es error de FK, propagamos
+        if (error.code === '23503') {
+           throw {
+             code: '23503',
+             message: `La oferta "${oferta.nombre}" tiene historial de ventas.`,
+           };
+        }
+        throw error;
+      }
+    }
+
+    // 3. Eliminar dependencias directas del comercio
+    const dependencies = [
+      'banner',
+      'resena_comercio',
+      'seguidor',
+      'promocion',
+      'comercio_tiene_categoria',
+      'comercio_membresia',
+    ];
+
+    for (const table of dependencies) {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('comercio_id', id);
+
+      if (error) {
+        console.error(`Error eliminando dependencias en ${table}:`, error);
+        throw error;
+      }
+    }
+
+    // 4. Finalmente eliminar el comercio
+    const { error } = await supabase.from('comercio').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error eliminando comercio:', error);
+      throw error;
+    }
+
+    console.log('Comercio eliminado correctamente:', id);
+  },
 };
