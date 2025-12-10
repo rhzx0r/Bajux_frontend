@@ -5,13 +5,10 @@ import type {
   UpdateComercio,
   Comercio,
   CategoriaComercio,
-<<<<<<< HEAD
-=======
   CategoriaOferta,
   Oferta,
   NewOferta,
   UpdateOferta,
->>>>>>> temp_feature
 } from '../types';
 
 export const comercioService = {
@@ -50,9 +47,6 @@ export const comercioService = {
       .from('comercio')
       .select('*')
       .eq('propietario_id', session.user.id)
-<<<<<<< HEAD
-      .order('created_at', { ascending: false });
-=======
       .order('id', { ascending: false });
 
     if (error) throw error;
@@ -60,24 +54,60 @@ export const comercioService = {
   },
 
   // Obtener todos los comercios (público)
-  async getAllComercios(searchQuery: string = ''): Promise<Comercio[]> {
-    let query = supabase.from('comercio').select('*');
+  async getAllComercios(searchQuery: string = '', categoryId?: number | null): Promise<Comercio[]> {
+    let query = supabase.from('comercio').select('*, comercio_tiene_categoria!inner(categoria_comercio_id)');
 
     if (searchQuery) {
       query = query.ilike('nombre', `%${searchQuery}%`);
     }
 
+    if (categoryId) {
+        query = query.eq('comercio_tiene_categoria.categoria_comercio_id', categoryId);
+    }
+
+    // If no category filter, we don't strictly need !inner, but for consistency we use it if we want to support filtering later.
+    // However, if categoryId is null, !inner might restrict results to only those having ANY category?
+    // "Inner join" filters out rows with no match.
+    // If categoryId is null, we should use a normal select.
+
+    if (!categoryId) {
+        // Reset to simple select if no category filter to ensure we get un-categorized stores too (if allowed)
+        // Or just to be efficient.
+         let simpleQuery = supabase.from('comercio').select('*');
+         if (searchQuery) {
+            simpleQuery = simpleQuery.ilike('nombre', `%${searchQuery}%`);
+         }
+         const { data, error } = await simpleQuery.order('id', { ascending: false });
+         if (error) throw error;
+         return data || [];
+    }
+
     const { data, error } = await query.order('id', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Obtener todos los servicios destacados (ofertas tipo servicio)
-  async getAllServices(searchQuery: string = ''): Promise<Oferta[]> {
+  async getAllServices(searchQuery: string = '', categoryId?: number | null): Promise<Oferta[]> {
+    if (!categoryId) {
+        let query = supabase
+        .from('oferta')
+        .select('*')
+        .eq('tipo', 'servicio')
+        .eq('disponible', true);
+
+        if (searchQuery) {
+            query = query.ilike('nombre', `%${searchQuery}%`);
+        }
+        const { data, error } = await query.order('id', { ascending: false });
+        if (error) throw error;
+        return data || [];
+    }
+
     let query = supabase
       .from('oferta')
-      .select('*')
+      .select('*, oferta_tiene_categoria!inner(categoria_oferta_id)')
       .eq('tipo', 'servicio')
       .eq('disponible', true);
 
@@ -85,11 +115,14 @@ export const comercioService = {
       query = query.ilike('nombre', `%${searchQuery}%`);
     }
 
+    if (categoryId) {
+        query = query.eq('oferta_tiene_categoria.categoria_oferta_id', categoryId);
+    }
+
     const { data, error } = await query.order('id', { ascending: false });
->>>>>>> temp_feature
 
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Obtener un comercio específico
@@ -140,8 +173,6 @@ export const comercioService = {
 
     if (error) throw error;
   },
-<<<<<<< HEAD
-=======
 
   // === Categorías de Oferta ===
 
@@ -363,5 +394,4 @@ export const comercioService = {
 
     console.log('Comercio eliminado correctamente:', id);
   },
->>>>>>> temp_feature
 };

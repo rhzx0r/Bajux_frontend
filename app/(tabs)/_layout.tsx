@@ -1,9 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Wrench, Play, Store, ShoppingCart, User, House } from 'lucide-react-native';
-<<<<<<< HEAD
-=======
 import { CartIcon } from '../../components/CartIcon';
->>>>>>> temp_feature
 
 export default function TabLayout() {
   return (
@@ -44,18 +41,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-<<<<<<< HEAD
-        name="shorts"
-        options={{
-          title: '',
-          tabBarIcon: ({ size, color }) => (
-            <Play size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-=======
->>>>>>> temp_feature
         name="stores"
         options={{
           title: '',
@@ -69,11 +54,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ size, color }) => (
-<<<<<<< HEAD
-            <ShoppingCart size={size} color={color} />
-=======
             <CartIcon size={size} color={color} />
->>>>>>> temp_feature
           ),
         }}
       />

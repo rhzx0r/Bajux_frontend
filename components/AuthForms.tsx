@@ -12,14 +12,9 @@ import {
   Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-<<<<<<< HEAD
-import { Camera, X } from 'lucide-react-native';
-import { useAuthActions } from '../hooks/useAuthActions';
-=======
 import { Camera, IterationCcwIcon, X } from 'lucide-react-native';
 import { useAuthActions } from '../hooks/useAuthActions';
 import { toast } from 'sonner-native';
->>>>>>> temp_feature
 
 type AuthMode = 'login' | 'register';
 
@@ -76,10 +71,7 @@ export function AuthForms() {
             [{ text: 'OK', style: 'cancel' }],
           );
         } else {
-<<<<<<< HEAD
-=======
           // toast(`Error al iniciar sesión: ${errorMessage}`);
->>>>>>> temp_feature
           Alert.alert('Error', errorMessage);
         }
       }
@@ -159,8 +151,6 @@ export function AuthForms() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-<<<<<<< HEAD
-=======
         <View aria-hidden={true} style={{ visibility: 'hidden' }}>
           {error &&
             toast(`Error: ${error}`, {
@@ -170,7 +160,6 @@ export function AuthForms() {
             })}
         </View>
 
->>>>>>> temp_feature
         <View style={styles.header}>
           <Text style={styles.title}>
             {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
@@ -182,15 +171,6 @@ export function AuthForms() {
           </Text>
         </View>
 
-<<<<<<< HEAD
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-=======
->>>>>>> temp_feature
         <View style={styles.form}>
           {mode === 'register' && (
             <>
