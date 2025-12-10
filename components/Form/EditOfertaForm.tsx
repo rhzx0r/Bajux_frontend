@@ -5,17 +5,31 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   Image,
   Modal,
   Switch,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, X, Tag, DollarSign, Package, Trash2 } from 'lucide-react-native';
+import { Camera, X, Tag, DollarSign, Package, Trash2, AlertTriangle } from 'lucide-react-native';
 import { comercioService } from '../../lib/comercio';
 import { storageService } from '../../lib/storage';
 import { Oferta, TipoOferta } from '../../types';
+
+// Tipado del alert personalizado
+type CustomAlertButton = {
+  text: string;
+  style?: 'cancel' | 'destructive' | 'default';
+  onPress: () => void;
+};
+
+interface CustomAlertConfig {
+  visible: boolean;
+  title: string;
+  message: string;
+  icon?: 'warning';
+  buttons: CustomAlertButton[];
+}
 
 interface EditOfertaFormProps {
   oferta: Oferta;
@@ -30,6 +44,12 @@ export function EditOfertaForm({
 }: EditOfertaFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [customAlert, setCustomAlert] = useState<CustomAlertConfig>({
+    visible: false,
+    title: '',
+    message: '',
+    buttons: [],
+  });
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -53,6 +73,16 @@ export function EditOfertaForm({
     }
   }, [oferta]);
 
+  // === Alert personalizado helpers ===
+  const showCustomAlert = (config: Omit<CustomAlertConfig, 'visible'>) => {
+    setCustomAlert({ ...config, visible: true });
+  };
+
+  const hideCustomAlert = () => {
+    setCustomAlert((prev) => ({ ...prev, visible: false }));
+  };
+
+  // === Handlers ===
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -66,24 +96,40 @@ export function EditOfertaForm({
         setSelectedImage(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+      console.error('Error al seleccionar imagen:', error);
+      showCustomAlert({
+        title: 'Error',
+        message: 'No se pudo seleccionar la imagen',
+        buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+      });
     }
   };
 
   const handleSubmit = async () => {
-    // Validaciones
     if (!formData.nombre.trim()) {
-      Alert.alert('Error', 'El nombre es obligatorio');
+      showCustomAlert({
+        title: 'Error',
+        message: 'El nombre es obligatorio',
+        buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+      });
       return;
     }
 
     if (!formData.precio || isNaN(parseFloat(formData.precio))) {
-      Alert.alert('Error', 'El precio debe ser un número válido');
+      showCustomAlert({
+        title: 'Error',
+        message: 'El precio debe ser un número válido',
+        buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+      });
       return;
     }
 
     if (formData.tipo === 'producto' && (!formData.stock || isNaN(parseInt(formData.stock)))) {
-      Alert.alert('Error', 'El stock debe ser un número entero válido');
+      showCustomAlert({
+        title: 'Error',
+        message: 'El stock debe ser un número entero válido',
+        buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+      });
       return;
     }
 
@@ -95,7 +141,7 @@ export function EditOfertaForm({
       if (selectedImage && oferta.comercio_id) {
         imagenUrl = await storageService.uploadOfertaImage(
           oferta.comercio_id,
-          selectedImage,
+          selectedImage
         );
       }
 
@@ -109,75 +155,140 @@ export function EditOfertaForm({
         imagen_url: imagenUrl,
       });
 
-      Alert.alert('Éxito', `${formData.tipo === 'producto' ? 'Producto' : 'Servicio'} actualizado correctamente`);
-      onSuccess();
+      showCustomAlert({
+        title: '✅ Éxito',
+        message: `${formData.tipo === 'producto' ? 'Producto' : 'Servicio'} actualizado correctamente`,
+        buttons: [
+          {
+            text: 'Aceptar',
+            onPress: () => {
+              hideCustomAlert();
+              onSuccess();
+            },
+          },
+        ],
+      });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo actualizar la oferta');
+      console.error('Error al actualizar:', error);
+      showCustomAlert({
+        title: '❌ Error',
+        message: error.message || 'No se pudo actualizar la oferta',
+        buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Eliminar',
-      '¿Estás seguro de que deseas eliminar este artículo?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
+    showCustomAlert({
+      title: '¿Eliminar artículo?',
+      message: '¿Estás seguro de que deseas eliminar este artículo?',
+      icon: 'warning',
+      buttons: [
+        { text: 'Cancelar', style: 'cancel', onPress: hideCustomAlert },
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await comercioService.deleteOferta(oferta.id);
-              onSuccess();
-            } catch (error: any) {
-              console.error(error);
-              // Código de error de llave foránea en PostgreSQL: 23503
-              if (error?.code === '23503') {
-                Alert.alert(
-                  'No se puede eliminar',
-                  'Este artículo tiene pedidos asociados y no se puede eliminar permanentemente para mantener el historial. ¿Deseas marcarlo como no disponible?',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'Marcar como no disponible',
-                      onPress: async () => {
-                        try {
-                          await comercioService.updateOferta(oferta.id, {
-                            disponible: false,
-                          });
-                          Alert.alert(
-                            'Actualizado',
-                            'El artículo ha sido marcado como no disponible.'
-                          );
-                          onSuccess();
-                        } catch (updateError) {
-                          Alert.alert(
-                            'Error',
-                            'No se pudo actualizar el estado del artículo.'
-                          );
-                        }
-                      },
-                    },
-                  ]
-                );
-              } else {
-                Alert.alert(
-                  'Error',
-                  'No se pudo eliminar el artículo. Intenta nuevamente.'
-                );
-              }
-            } finally {
-              setLoading(false);
-            }
-          },
+          onPress: confirmDelete,
         },
-      ]
-    );
+      ],
+    });
   };
 
+  const confirmDelete = async () => {
+    if (!oferta.id) {
+      showCustomAlert({
+        title: '❌ Error',
+        message: 'ID de oferta no válido',
+        buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+      });
+      return;
+    }
+
+    setLoading(true);
+    hideCustomAlert(); // cerramos el primer alert
+
+    try {
+      await comercioService.deleteOferta(oferta.id);
+
+      showCustomAlert({
+        title: '✅ Éxito',
+        message: 'Artículo eliminado correctamente',
+        buttons: [
+          {
+            text: 'Aceptar',
+            onPress: () => {
+              hideCustomAlert();
+              onSuccess();
+            },
+          },
+        ],
+      });
+    } catch (error: any) {
+      console.error('❌ Error al eliminar:', error);
+
+      const isForeignKeyViolation =
+        error?.code === '23503' ||
+        (error && typeof error === 'object' && (error as any).code === '23503') ||
+        error?.message?.includes('23503') ||
+        error?.message?.includes('pedidos') ||
+        error?.message?.includes('FOREIGN KEY');
+
+      if (isForeignKeyViolation) {
+        showCustomAlert({
+          title: '⚠️ No se puede eliminar',
+          message:
+            'Este artículo tiene pedidos asociados y no se puede eliminar permanentemente para mantener el historial. ¿Deseas marcarlo como no disponible?',
+          icon: 'warning',
+          buttons: [
+            { text: 'Cancelar', style: 'cancel', onPress: hideCustomAlert },
+            {
+              text: 'Marcar como no disponible',
+              onPress: async () => {
+                hideCustomAlert();
+                try {
+                  await comercioService.updateOferta(oferta.id, {
+                    disponible: false,
+                  });
+                  showCustomAlert({
+                    title: '✅ Actualizado',
+                    message: 'El artículo ha sido marcado como no disponible.',
+                    buttons: [
+                      {
+                        text: 'Aceptar',
+                        onPress: () => {
+                          hideCustomAlert();
+                          onSuccess();
+                        },
+                      },
+                    ],
+                  });
+                } catch (updateError) {
+                  console.error('Error al actualizar disponibilidad:', updateError);
+                  showCustomAlert({
+                    title: '❌ Error',
+                    message: 'No se pudo actualizar el estado del artículo.',
+                    buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+                  });
+                }
+              },
+            },
+          ],
+        });
+      } else {
+        showCustomAlert({
+          title: '❌ Error',
+          message: error?.message || 'No se pudo eliminar el artículo. Intenta nuevamente.',
+          buttons: [{ text: 'Entendido', onPress: hideCustomAlert }],
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // === Render ===
   return (
     <Modal animationType="slide" transparent={true}>
       <View style={styles.modalOverlay}>
@@ -230,9 +341,7 @@ export function EditOfertaForm({
                 <TextInput
                   placeholder="Ej. Martillo"
                   value={formData.nombre}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, nombre: text })
-                  }
+                  onChangeText={(text) => setFormData({ ...formData, nombre: text })}
                   style={styles.input}
                 />
               </View>
@@ -243,9 +352,7 @@ export function EditOfertaForm({
               <TextInput
                 placeholder="Detalles del artículo..."
                 value={formData.descripcion}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, descripcion: text })
-                }
+                onChangeText={(text) => setFormData({ ...formData, descripcion: text })}
                 style={[styles.input, styles.textArea]}
                 multiline
                 numberOfLines={3}
@@ -260,9 +367,7 @@ export function EditOfertaForm({
                   <TextInput
                     placeholder="0.00"
                     value={formData.precio}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, precio: text })
-                    }
+                    onChangeText={(text) => setFormData({ ...formData, precio: text })}
                     keyboardType="numeric"
                     style={styles.input}
                   />
@@ -277,9 +382,7 @@ export function EditOfertaForm({
                     <TextInput
                       placeholder="0"
                       value={formData.stock}
-                      onChangeText={(text) =>
-                        setFormData({ ...formData, stock: text })
-                      }
+                      onChangeText={(text) => setFormData({ ...formData, stock: text })}
                       keyboardType="numeric"
                       style={styles.input}
                     />
@@ -288,19 +391,19 @@ export function EditOfertaForm({
               )}
             </View>
 
-             <View style={styles.switchContainer}>
+            <View style={styles.switchContainer}>
               <Text style={styles.label}>Disponible</Text>
               <Switch
                 value={formData.disponible}
                 onValueChange={(val) => setFormData({ ...formData, disponible: val })}
-                trackColor={{ false: "#767577", true: "#8B4513" }}
-                thumbColor={formData.disponible ? "#D2B48C" : "#f4f3f4"}
+                trackColor={{ false: '#767577', true: '#8B4513' }}
+                thumbColor={formData.disponible ? '#D2B48C' : '#f4f3f4'}
               />
             </View>
 
             {/* Buttons */}
             <View style={styles.buttons}>
-               <TouchableOpacity
+              <TouchableOpacity
                 style={[styles.button, styles.deleteButton]}
                 onPress={handleDelete}
                 disabled={loading}
@@ -331,12 +434,62 @@ export function EditOfertaForm({
               </TouchableOpacity>
             </View>
           </ScrollView>
+
+          {/* 🌟 Custom Alert Modal */}
+          <Modal
+            transparent
+            visible={customAlert.visible}
+            animationType="fade"
+            onRequestClose={hideCustomAlert}
+          >
+            <View style={styles.alertOverlay}>
+              <View style={styles.alertContent}>
+                {/* Icono opcional */}
+                {customAlert.icon === 'warning' && (
+                  <View style={styles.alertIconContainer}>
+                    <AlertTriangle size={28} color="#FFA500" />
+                  </View>
+                )}
+
+                <Text style={styles.alertTitle}>{customAlert.title}</Text>
+                <Text style={styles.alertMessage}>{customAlert.message}</Text>
+
+                <View style={styles.alertButtonsContainer}>
+                  {customAlert.buttons.map((btn, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[
+                        styles.alertButton,
+                        btn.style === 'destructive' && styles.alertButtonDestructive,
+                        btn.style === 'cancel' && styles.alertButtonCancel,
+                      ]}
+                      onPress={() => {
+                        btn.onPress();
+                      }}
+                      disabled={loading}
+                    >
+                      <Text
+                        style={[
+                          styles.alertButtonText,
+                          btn.style === 'destructive' && styles.alertButtonTextDestructive,
+                          btn.style === 'cancel' && styles.alertButtonTextCancel,
+                        ]}
+                      >
+                        {btn.text}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </Modal>
         </View>
       </View>
     </Modal>
   );
 }
 
+// === Estilos ===
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
@@ -449,10 +602,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   switchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   buttons: {
     flexDirection: 'row',
@@ -494,5 +647,72 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // === Estilos del Custom Alert ===
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  alertContent: {
+    width: '80%',
+    maxWidth: 350,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  alertIconContainer: {
+    marginBottom: 12,
+  },
+  alertTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  alertMessage: {
+    fontSize: 15,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  alertButtonsContainer: {
+    width: '100%',
+  },
+  alertButton: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+    backgroundColor: '#8B4513',
+  },
+  alertButtonDestructive: {
+    backgroundColor: '#FF6B6B',
+  },
+  alertButtonCancel: {
+    backgroundColor: '#F0F0F0',
+  },
+  alertButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  alertButtonTextDestructive: {
+    color: 'white',
+  },
+  alertButtonTextCancel: {
+    color: '#333',
   },
 });
