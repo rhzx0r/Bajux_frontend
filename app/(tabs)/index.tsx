@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, MapPin, Star, Clock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { comercioService } from '../../lib/comercio';
+import { getCategoryIcon } from '../../lib/categoryIcons';
 import { Comercio, Oferta, CategoriaComercio } from '../../types';
 
 export default function HomeScreen() {
@@ -78,7 +79,9 @@ export default function HomeScreen() {
                     categories.map((category) => (
                       <TouchableOpacity key={category.id} style={styles.categoryCard}>
                         {/* Placeholder icon since we don't have icons in DB yet */}
-                        <Text style={styles.categoryIcon}>📦</Text>
+                        <View style={styles.categoryIconContainer}>
+                          {getCategoryIcon(category.nombre, 24, '#8B4513')}
+                        </View>
                         <Text style={styles.categoryName}>{category.nombre}</Text>
                         <Text style={styles.categoryCount}>{category.descripcion}</Text>
                       </TouchableOpacity>
@@ -268,8 +271,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  categoryIcon: {
-    fontSize: 24,
+  categoryIconContainer: {
     marginBottom: 8,
   },
   categoryName: {
