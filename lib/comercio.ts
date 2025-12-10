@@ -163,8 +163,19 @@ export const comercioService = {
     }
 
     // 2. Si no hay pedidos, eliminar dependencias
-    await supabase.from('oferta_tiene_categoria').delete().eq('oferta_id', id);
-    await supabase.from('resena_oferta').delete().eq('oferta_id', id);
+    const { error: catError } = await supabase
+      .from('oferta_tiene_categoria')
+      .delete()
+      .eq('oferta_id', id);
+
+    if (catError) throw catError;
+
+    const { error: revError } = await supabase
+      .from('resena_oferta')
+      .delete()
+      .eq('oferta_id', id);
+
+    if (revError) throw revError;
 
     // 3. Eliminar la oferta
     const { error } = await supabase.from('oferta').delete().eq('id', id);
