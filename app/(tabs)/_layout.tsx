@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Wrench, Play, Store, ShoppingCart, User, House } from 'lucide-react-native';
+import { CartIcon } from '../../components/CartIcon';
 
 export default function TabLayout() {
   return (
@@ -53,7 +54,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ size, color }) => (
-            <ShoppingCart size={size} color={color} />
+            <CartIcon size={size} color={color} />
           ),
         }}
       />

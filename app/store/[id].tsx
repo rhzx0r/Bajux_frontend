@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Act
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, Phone, Plus, ShoppingCart, Settings } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { toast } from 'sonner-native';
 import { useCart } from '@/contexts/CartContext';
+import { CartIcon } from '../../components/CartIcon';
 import { useAuth } from '../../providers/AuthProvider';
 import { comercioService } from '../../lib/comercio';
 import { Comercio, Oferta } from '../../types';
@@ -76,7 +78,11 @@ export default function StoreDetailScreen() {
       storeName: comercio.nombre || 'Comercio',
       image: oferta.imagen_url || 'https://images.pexels.com/photos/209235/pexels-photo-209235.jpeg?auto=compress&cs=tinysrgb&w=400',
     });
-    Alert.alert('Producto agregado', `${oferta.nombre} se agregó al carrito.`);
+
+    toast.success('Producto agregado', {
+      description: `${oferta.nombre} se agregó al carrito.`,
+      duration: 3000,
+    });
   };
 
   if (loading) {
@@ -121,7 +127,7 @@ export default function StoreDetailScreen() {
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => router.push('/cart')} style={styles.actionButton}>
-            <ShoppingCart size={24} color="#8B4513" />
+            <CartIcon size={24} color="#8B4513" />
           </TouchableOpacity>
         </View>
       </View>
