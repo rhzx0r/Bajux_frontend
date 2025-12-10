@@ -148,17 +148,23 @@ export const comercioService = {
 
   // Eliminar (o desactivar) una oferta
   async deleteOferta(id: number): Promise<void> {
+    console.log('Intentando eliminar oferta:', id);
+
     // 1. Verificar si existen pedidos asociados (bloqueo por historial)
     const { count, error: countError } = await supabase
       .from('detalle_pedido')
       .select('*', { count: 'exact', head: true })
       .eq('oferta_id', id);
 
-    if (countError) throw countError;
+    if (countError) {
+      console.error('Error verificando pedidos:', countError);
+      throw countError;
+    }
 
     // Si hay pedidos, lanzamos error de llave foránea simulado para que el frontend sugiera archivar
     // Esto evita borrar reseñas/categorías si la oferta no se puede eliminar
     if (count && count > 0) {
+      console.log('Oferta tiene pedidos asociados, no se puede eliminar permanentemente');
       throw { code: '23503', message: 'Oferta tiene pedidos asociados' };
     }
 
@@ -168,18 +174,29 @@ export const comercioService = {
       .delete()
       .eq('oferta_id', id);
 
-    if (catError) throw catError;
+    if (catError) {
+      console.error('Error eliminando categorías:', catError);
+      throw catError;
+    }
 
     const { error: revError } = await supabase
       .from('resena_oferta')
       .delete()
       .eq('oferta_id', id);
 
-    if (revError) throw revError;
+    if (revError) {
+      console.error('Error eliminando reseñas:', revError);
+      throw revError;
+    }
 
     // 3. Eliminar la oferta
     const { error } = await supabase.from('oferta').delete().eq('id', id);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error eliminando oferta:', error);
+      throw error;
+    }
+
+    console.log('Oferta eliminada correctamente:', id);
   },
 };
