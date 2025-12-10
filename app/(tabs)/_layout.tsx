@@ -40,15 +40,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="shorts"
-        options={{
-          title: '',
-          tabBarIcon: ({ size, color }) => (
-            <Play size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="stores"
         options={{
           title: '',
