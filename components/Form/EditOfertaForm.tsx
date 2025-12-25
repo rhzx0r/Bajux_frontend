@@ -15,6 +15,7 @@ import { Camera, X, Tag, DollarSign, Package, Trash2, AlertTriangle } from 'luci
 import { comercioService } from '../../lib/comercio';
 import { storageService } from '../../lib/storage';
 import { Oferta, TipoOferta } from '../../types';
+import { CategorySelector } from './CategorySelector';
 
 // Tipado del alert personalizado
 type CustomAlertButton = {
@@ -44,6 +45,7 @@ export function EditOfertaForm({
 }: EditOfertaFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [customAlert, setCustomAlert] = useState<CustomAlertConfig>({
     visible: false,
     title: '',
@@ -70,8 +72,19 @@ export function EditOfertaForm({
         tipo: oferta.tipo || 'producto',
         disponible: oferta.disponible ?? true,
       });
+      loadOfertaCategories();
     }
   }, [oferta]);
+
+  const loadOfertaCategories = async () => {
+    if (!oferta?.id) return;
+    try {
+      const ids = await comercioService.getCategoriasByOferta(oferta.id);
+      setSelectedCategories(ids);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   // === Alert personalizado helpers ===
   const showCustomAlert = (config: Omit<CustomAlertConfig, 'visible'>) => {
@@ -154,6 +167,8 @@ export function EditOfertaForm({
         disponible: formData.disponible,
         imagen_url: imagenUrl,
       });
+
+      await comercioService.updateOfertaCategories(oferta.id, selectedCategories);
 
       showCustomAlert({
         title: '✅ Éxito',
@@ -400,6 +415,12 @@ export function EditOfertaForm({
                 thumbColor={formData.disponible ? '#D2B48C' : '#f4f3f4'}
               />
             </View>
+
+            {/* Category Selector */}
+            <CategorySelector
+              selectedIds={selectedCategories}
+              onSelectionChange={setSelectedCategories}
+            />
 
             {/* Buttons */}
             <View style={styles.buttons}>

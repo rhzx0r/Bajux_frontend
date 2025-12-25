@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Filter, Star, Clock, Phone, MapPin } from 'lucide-react-native';
+import { Search, Filter, Star, Wrench } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { comercioService } from '../../lib/comercio';
-import { Oferta, CategoriaComercio } from '../../types';
+import { Oferta, CategoriaOferta } from '../../types';
+import { FilterModal } from '../../components/FilterModal';
 
 export default function ServicesScreen() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [services, setServices] = useState<Oferta[]>([]);
-  const [categories, setCategories] = useState<CategoriaComercio[]>([]);
+  const [categories, setCategories] = useState<CategoriaOferta[]>([]);
+  const [filterVisible, setFilterVisible] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategoryId]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [fetchedServices, fetchedCategories] = await Promise.all([
-        comercioService.getAllServices(searchQuery),
-        comercioService.getCategoriasComercio(), // Note: these are commerce categories, not strictly service categories, but maybe close enough for now
+        comercioService.getAllServices(searchQuery, selectedCategoryId),
+        comercioService.getCategoriasOferta(),
       ]);
 
       setServices(fetchedServices);
@@ -34,22 +36,14 @@ export default function ServicesScreen() {
     }
   };
 
-  const filteredServices = services.filter(service => {
-      // Basic client-side filtering if needed on top of API search
-      // Currently API search handles name. Category filtering needs handling if `oferta` had a category field directly linked to `categoria_comercio`.
-      // The schema has `oferta_tiene_categoria`, which is many-to-many. For now, I will display all matching name search.
-      // If `selectedCategory` is 'Todos', show all.
-      // Implementing client-side category filtering would require fetching the relations.
-      // For this step, I will simplify and just use the search query from API.
-      return true;
-  });
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN',
     }).format(price);
   };
+
+  const selectedCategoryName = categories.find(c => c.id === selectedCategoryId)?.nombre;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,51 +65,19 @@ export default function ServicesScreen() {
             placeholderTextColor="#8B4513"
           />
         </View>
-        <TouchableOpacity style={styles.filterButton}>
-          <Filter size={20} color="#FFD700" />
+        <TouchableOpacity
+            style={[styles.filterButton, selectedCategoryId !== null && styles.filterButtonActive]}
+            onPress={() => setFilterVisible(true)}
+        >
+          <Filter size={20} color={selectedCategoryId !== null ? "#FFFFFF" : "#FFD700"} />
         </TouchableOpacity>
       </View>
 
-      {/* Categories */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScrollView}>
-        <View style={styles.categoriesContainer}>
-          <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                selectedCategory === 'Todos' && styles.selectedCategoryButton,
-              ]}
-              onPress={() => setSelectedCategory('Todos')}
-            >
-              <Text
-                 style={[
-                  styles.categoryButtonText,
-                  selectedCategory === 'Todos' && styles.selectedCategoryButtonText,
-                ]}
-              >
-                Todos
-              </Text>
-            </TouchableOpacity>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category.nombre && styles.selectedCategoryButton,
-              ]}
-              onPress={() => setSelectedCategory(category.nombre || '')}
-            >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  selectedCategory === category.nombre && styles.selectedCategoryButtonText,
-                ]}
-              >
-                {category.nombre}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      {selectedCategoryName && (
+        <View style={styles.activeFilterContainer}>
+            <Text style={styles.activeFilterText}>Categoría: {selectedCategoryName}</Text>
         </View>
-      </ScrollView>
+      )}
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -124,14 +86,21 @@ export default function ServicesScreen() {
       ) : (
         /* Services List */
         <ScrollView showsVerticalScrollIndicator={false} style={styles.servicesList}>
-          {filteredServices.length > 0 ? (
-            filteredServices.map((service) => (
+          {services.length > 0 ? (
+            services.map((service) => (
               <TouchableOpacity
                 key={service.id}
                 style={styles.serviceCard}
                 onPress={() => router.push(`/service/${service.id}`)}
               >
-                <Image source={{ uri: service.imagen_url || 'https://via.placeholder.com/200' }} style={styles.serviceImage} />
+                {service.imagen_url ? (
+                    <Image source={{ uri: service.imagen_url }} style={styles.serviceImage} />
+                ) : (
+                    <View style={[styles.serviceImage, styles.placeholderContainer]}>
+                        <Wrench size={48} color="#D2B48C" />
+                    </View>
+                )}
+
                 <View style={styles.serviceContent}>
                   <View style={styles.serviceHeader}>
                     <Text style={styles.serviceName}>{service.nombre}</Text>
@@ -144,7 +113,7 @@ export default function ServicesScreen() {
                   </View>
 
                   <View style={styles.serviceTypeContainer}>
-                    <Text style={styles.serviceType}>{service.descripcion}</Text>
+                    <Text style={styles.serviceType} numberOfLines={1}>{service.descripcion}</Text>
                     <View style={styles.priceContainer}>
                       <Text style={styles.priceSymbol}>{formatPrice(service.precio || 0)}</Text>
                     </View>
@@ -154,12 +123,6 @@ export default function ServicesScreen() {
                     <View style={styles.ratingContainer}>
                       <Star size={16} color="#FFD700" fill="#FFD700" />
                       <Text style={styles.ratingText}>N/A</Text>
-                      <Text style={styles.reviewsText}></Text>
-                    </View>
-
-                    <View style={styles.locationContainer}>
-                      {/* <MapPin size={14} color="#B8860B" /> */}
-                      <Text style={styles.locationText}>{/* service.location */}</Text>
                     </View>
                   </View>
 
@@ -179,6 +142,14 @@ export default function ServicesScreen() {
           )}
         </ScrollView>
       )}
+
+      <FilterModal
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        categories={categories}
+        selectedId={selectedCategoryId}
+        onApply={setSelectedCategoryId}
+      />
     </SafeAreaView>
   );
 }
@@ -194,13 +165,13 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24, // Reduced from 28
     fontWeight: 'bold',
     color: '#8B4513',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14, // Reduced from 16
     color: '#B8860B',
   },
   searchSection: {
@@ -228,38 +199,23 @@ const styles = StyleSheet.create({
     color: '#8B4513',
   },
   filterButton: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#F5F5F5',
     borderRadius: 25,
     padding: 12,
-  },
-  categoriesScrollView: {
-    maxHeight: 50,
-    marginBottom: 16,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-  },
-  categoryButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
     borderWidth: 1,
     borderColor: '#D2B48C',
   },
-  selectedCategoryButton: {
-    backgroundColor: '#8B4513',
-    borderColor: '#8B4513',
+  filterButtonActive: {
+      backgroundColor: '#8B4513',
   },
-  categoryButtonText: {
-    fontSize: 14,
-    color: '#8B4513',
-    fontWeight: '500',
+  activeFilterContainer: {
+      paddingHorizontal: 20,
+      marginBottom: 10,
   },
-  selectedCategoryButtonText: {
-    color: '#FFFFFF',
+  activeFilterText: {
+      color: '#8B4513',
+      fontWeight: '600',
+      fontSize: 14,
   },
   servicesList: {
     flex: 1,
@@ -284,6 +240,11 @@ const styles = StyleSheet.create({
   serviceImage: {
     width: '100%',
     height: 140,
+  },
+  placeholderContainer: {
+      backgroundColor: '#F5F5F5',
+      justifyContent: 'center',
+      alignItems: 'center',
   },
   serviceContent: {
     padding: 16,
@@ -329,22 +290,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   serviceType: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#030303ff',
-    fontWeight: '600',
+    flex: 1,
   },
   priceContainer: {
     flexDirection: 'row',
+    marginLeft: 8,
   },
   priceSymbol: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  serviceDescription: {
-    fontSize: 14,
-    color: '#3c3535ff',
-    lineHeight: 20,
-    marginBottom: 12,
+    color: '#B8860B',
   },
   serviceFooter: {
     marginBottom: 12,
@@ -360,20 +317,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 4,
   },
-  reviewsText: {
-    fontSize: 12,
-    color: '#888888',
-    marginLeft: 4,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#B8860B',
-    marginLeft: 4,
-  },
   contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -387,6 +330,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
-    marginLeft: 8,
   },
 });

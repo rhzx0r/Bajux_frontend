@@ -5,6 +5,7 @@ import type {
   UpdateComercio,
   Comercio,
   CategoriaComercio,
+  CategoriaOferta,
   Oferta,
   NewOferta,
   UpdateOferta,
@@ -53,24 +54,60 @@ export const comercioService = {
   },
 
   // Obtener todos los comercios (público)
-  async getAllComercios(searchQuery: string = ''): Promise<Comercio[]> {
-    let query = supabase.from('comercio').select('*');
+  async getAllComercios(searchQuery: string = '', categoryId?: number | null): Promise<Comercio[]> {
+    let query = supabase.from('comercio').select('*, comercio_tiene_categoria!inner(categoria_comercio_id)');
 
     if (searchQuery) {
       query = query.ilike('nombre', `%${searchQuery}%`);
     }
 
+    if (categoryId) {
+        query = query.eq('comercio_tiene_categoria.categoria_comercio_id', categoryId);
+    }
+
+    // If no category filter, we don't strictly need !inner, but for consistency we use it if we want to support filtering later.
+    // However, if categoryId is null, !inner might restrict results to only those having ANY category?
+    // "Inner join" filters out rows with no match.
+    // If categoryId is null, we should use a normal select.
+
+    if (!categoryId) {
+        // Reset to simple select if no category filter to ensure we get un-categorized stores too (if allowed)
+        // Or just to be efficient.
+         let simpleQuery = supabase.from('comercio').select('*');
+         if (searchQuery) {
+            simpleQuery = simpleQuery.ilike('nombre', `%${searchQuery}%`);
+         }
+         const { data, error } = await simpleQuery.order('id', { ascending: false });
+         if (error) throw error;
+         return data || [];
+    }
+
     const { data, error } = await query.order('id', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Obtener todos los servicios destacados (ofertas tipo servicio)
-  async getAllServices(searchQuery: string = ''): Promise<Oferta[]> {
+  async getAllServices(searchQuery: string = '', categoryId?: number | null): Promise<Oferta[]> {
+    if (!categoryId) {
+        let query = supabase
+        .from('oferta')
+        .select('*')
+        .eq('tipo', 'servicio')
+        .eq('disponible', true);
+
+        if (searchQuery) {
+            query = query.ilike('nombre', `%${searchQuery}%`);
+        }
+        const { data, error } = await query.order('id', { ascending: false });
+        if (error) throw error;
+        return data || [];
+    }
+
     let query = supabase
       .from('oferta')
-      .select('*')
+      .select('*, oferta_tiene_categoria!inner(categoria_oferta_id)')
       .eq('tipo', 'servicio')
       .eq('disponible', true);
 
@@ -78,10 +115,14 @@ export const comercioService = {
       query = query.ilike('nombre', `%${searchQuery}%`);
     }
 
+    if (categoryId) {
+        query = query.eq('oferta_tiene_categoria.categoria_oferta_id', categoryId);
+    }
+
     const { data, error } = await query.order('id', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data as any) || [];
   },
 
   // Obtener un comercio específico
@@ -132,6 +173,60 @@ export const comercioService = {
 
     if (error) throw error;
   },
+
+  // === Categorías de Oferta ===
+
+  // Obtener categorías de ofertas
+  async getCategoriasOferta(): Promise<CategoriaOferta[]> {
+    const { data, error } = await supabase
+      .from('categoria_oferta')
+      .select('*')
+      .order('nombre');
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Obtener categorías asignadas a una oferta
+  async getCategoriasByOferta(ofertaId: number): Promise<number[]> {
+    const { data, error } = await supabase
+      .from('oferta_tiene_categoria')
+      .select('categoria_oferta_id')
+      .eq('oferta_id', ofertaId);
+
+    if (error) throw error;
+    return data.map((item) => item.categoria_oferta_id!).filter(Boolean);
+  },
+
+  // Asignar categorías a una oferta (sobrescribe)
+  async updateOfertaCategories(
+    ofertaId: number,
+    categoryIds: number[],
+  ): Promise<void> {
+    // 1. Eliminar existentes
+    const { error: deleteError } = await supabase
+      .from('oferta_tiene_categoria')
+      .delete()
+      .eq('oferta_id', ofertaId);
+
+    if (deleteError) throw deleteError;
+
+    if (categoryIds.length === 0) return;
+
+    // 2. Insertar nuevas
+    const toInsert = categoryIds.map((catId) => ({
+      oferta_id: ofertaId,
+      categoria_oferta_id: catId,
+    }));
+
+    const { error: insertError } = await supabase
+      .from('oferta_tiene_categoria')
+      .insert(toInsert);
+
+    if (insertError) throw insertError;
+  },
+
+  // ============================
 
   // Obtener ofertas de un comercio
   async getOfertasByComercio(
@@ -193,8 +288,7 @@ export const comercioService = {
       throw countError;
     }
 
-    // Si hay pedidos, lanzamos error de llave foránea simulado para que el frontend sugiera archivar
-    // Esto evita borrar reseñas/categorías si la oferta no se puede eliminar
+    // Si hay pedidos, lanzamos error de llave foránea simulado
     if (count && count > 0) {
       console.log('Oferta tiene pedidos asociados, no se puede eliminar permanentemente');
       throw { code: '23503', message: 'Oferta tiene pedidos asociados' };
@@ -252,17 +346,12 @@ export const comercioService = {
     }
 
     // 2. Eliminar todas las ofertas asociadas
-    // Obtenemos todas las ofertas, incluyendo las no disponibles
     const ofertas = await this.getOfertasByComercio(id, true);
 
     for (const oferta of ofertas) {
-      // Reutilizamos deleteOferta para manejar la limpieza de cada oferta
-      // Si alguna oferta tiene pedidos (detalle_pedido) que quedaron huérfanos de pedido (raro pero posible),
-      // deleteOferta lanzará error.
       try {
         await this.deleteOferta(oferta.id);
       } catch (error: any) {
-        // Si es error de FK, propagamos
         if (error.code === '23503') {
            throw {
              code: '23503',
@@ -281,7 +370,7 @@ export const comercioService = {
       'promocion',
       'comercio_tiene_categoria',
       'comercio_membresia',
-    ];
+    ] as const;
 
     for (const table of dependencies) {
       const { error } = await supabase

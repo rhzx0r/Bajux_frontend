@@ -1,27 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Filter, Star, Clock, MapPin, Package } from 'lucide-react-native';
+import { Search, Filter, Star, MapPin, Store } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { comercioService } from '../../lib/comercio';
 import { Comercio, CategoriaComercio } from '../../types';
+import { FilterModal } from '../../components/FilterModal';
 
 export default function StoresScreen() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [stores, setStores] = useState<Comercio[]>([]);
   const [categories, setCategories] = useState<CategoriaComercio[]>([]);
+  const [filterVisible, setFilterVisible] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategoryId]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [fetchedStores, fetchedCategories] = await Promise.all([
-        comercioService.getAllComercios(searchQuery),
+        comercioService.getAllComercios(searchQuery, selectedCategoryId),
         comercioService.getCategoriasComercio(),
       ]);
 
@@ -34,11 +36,7 @@ export default function StoresScreen() {
     }
   };
 
-  const filteredStores = stores.filter(store => {
-    // Basic client-side filtering if needed on top of API search
-    // Using API search query for now, client side category filtering could be added if we fetched relations.
-    return true;
-  });
+  const selectedCategoryName = categories.find(c => c.id === selectedCategoryId)?.nombre;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -60,51 +58,19 @@ export default function StoresScreen() {
             placeholderTextColor="#8B4513"
           />
         </View>
-        <TouchableOpacity style={styles.filterButton}>
-          <Filter size={20} color="#FFD700" />
+        <TouchableOpacity
+            style={[styles.filterButton, selectedCategoryId !== null && styles.filterButtonActive]}
+            onPress={() => setFilterVisible(true)}
+        >
+          <Filter size={20} color={selectedCategoryId !== null ? "#FFFFFF" : "#FFD700"} />
         </TouchableOpacity>
       </View>
 
-      {/* Categories */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScrollView}>
-        <View style={styles.categoriesContainer}>
-          <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                selectedCategory === 'Todos' && styles.selectedCategoryButton,
-              ]}
-              onPress={() => setSelectedCategory('Todos')}
-            >
-              <Text
-                 style={[
-                  styles.categoryButtonText,
-                  selectedCategory === 'Todos' && styles.selectedCategoryButtonText,
-                ]}
-              >
-                Todos
-              </Text>
-            </TouchableOpacity>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category.nombre && styles.selectedCategoryButton,
-              ]}
-              onPress={() => setSelectedCategory(category.nombre || '')}
-            >
-              <Text
-                style={[
-                  styles.categoryButtonText,
-                  selectedCategory === category.nombre && styles.selectedCategoryButtonText,
-                ]}
-              >
-                {category.nombre}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      {selectedCategoryName && (
+        <View style={styles.activeFilterContainer}>
+            <Text style={styles.activeFilterText}>Categoría: {selectedCategoryName}</Text>
         </View>
-      </ScrollView>
+      )}
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -113,14 +79,21 @@ export default function StoresScreen() {
       ) : (
         /* Stores List */
         <ScrollView showsVerticalScrollIndicator={false} style={styles.storesList}>
-          {filteredStores.length > 0 ? (
-            filteredStores.map((store) => (
+          {stores.length > 0 ? (
+            stores.map((store) => (
               <TouchableOpacity
                 key={store.id}
                 style={styles.storeCard}
                 onPress={() => router.push(`/store/${store.id}`)}
               >
-                <Image source={{ uri: store.imagen_url || 'https://via.placeholder.com/200' }} style={styles.storeImage} />
+                {store.imagen_url ? (
+                    <Image source={{ uri: store.imagen_url }} style={styles.storeImage} />
+                ) : (
+                    <View style={[styles.storeImage, styles.placeholderContainer]}>
+                        <Store size={48} color="#D2B48C" />
+                    </View>
+                )}
+
                 <View style={styles.storeContent}>
                   <View style={styles.storeHeader}>
                     <Text style={styles.storeName}>{store.nombre}</Text>
@@ -140,24 +113,12 @@ export default function StoresScreen() {
                     <View style={styles.ratingContainer}>
                       <Star size={16} color="#FFD700" fill="#FFD700" />
                       <Text style={styles.ratingText}>N/A</Text>
-                      <Text style={styles.reviewsText}></Text>
-                    </View>
-
-                    <View style={styles.productsContainer}>
-                      {/* <Package size={16} color="#B8860B" /> */}
-                      <Text style={styles.productsText}></Text>
                     </View>
                   </View>
 
                   <View style={styles.locationContainer}>
                     <MapPin size={14} color="#B8860B" />
                     <Text style={styles.locationText}>{store.ubicacion}</Text>
-                  </View>
-
-                  <View style={styles.hoursContainer}>
-                    {/* <Clock size={14} color="#8B4513" />
-                    <Text style={styles.hoursText}>{store.horario}</Text> */}
-                    {/* Delivery badge placeholder */}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -169,6 +130,14 @@ export default function StoresScreen() {
           )}
         </ScrollView>
       )}
+
+      <FilterModal
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        categories={categories}
+        selectedId={selectedCategoryId}
+        onApply={setSelectedCategoryId}
+      />
     </SafeAreaView>
   );
 }
@@ -184,13 +153,13 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24, // Reduced
     fontWeight: 'bold',
     color: '#8B4513',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14, // Reduced
     color: '#B8860B',
   },
   searchSection: {
@@ -218,38 +187,23 @@ const styles = StyleSheet.create({
     color: '#8B4513',
   },
   filterButton: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#F5F5F5',
     borderRadius: 25,
     padding: 12,
-  },
-  categoriesScrollView: {
-    maxHeight: 50,
-    marginBottom: 16,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-  },
-  categoryButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
     borderWidth: 1,
     borderColor: '#D2B48C',
   },
-  selectedCategoryButton: {
-    backgroundColor: '#8B4513',
-    borderColor: '#8B4513',
+  filterButtonActive: {
+      backgroundColor: '#8B4513',
   },
-  categoryButtonText: {
-    fontSize: 14,
-    color: '#8B4513',
-    fontWeight: '500',
+  activeFilterContainer: {
+      paddingHorizontal: 20,
+      marginBottom: 10,
   },
-  selectedCategoryButtonText: {
-    color: '#FFFFFF',
+  activeFilterText: {
+      color: '#8B4513',
+      fontWeight: '600',
+      fontSize: 14,
   },
   storesList: {
     flex: 1,
@@ -274,6 +228,11 @@ const styles = StyleSheet.create({
   storeImage: {
     width: '100%',
     height: 140,
+  },
+  placeholderContainer: {
+      backgroundColor: '#F5F5F5',
+      justifyContent: 'center',
+      alignItems: 'center',
   },
   storeContent: {
     padding: 16,
@@ -335,20 +294,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 4,
   },
-  reviewsText: {
-    fontSize: 12,
-    color: '#888888',
-    marginLeft: 4,
-  },
-  productsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  productsText: {
-    fontSize: 12,
-    color: '#B8860B',
-    marginLeft: 4,
-  },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -358,27 +303,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#B8860B',
     marginLeft: 4,
-  },
-  hoursContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  hoursText: {
-    fontSize: 12,
-    color: '#8B4513',
-    marginLeft: 4,
-    flex: 1,
-  },
-  deliveryBadge: {
-    backgroundColor: '#8B4513',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  deliveryText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
 });

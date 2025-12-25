@@ -21,6 +21,8 @@ export type NewComercio = TablesInsert<'comercio'>;
 export type UpdateComercio = TablesUpdate<'comercio'>;
 
 export type CategoriaComercio = Tables<'categoria_comercio'>;
+export type CategoriaOferta = Tables<'categoria_oferta'>;
+
 export type NewOferta = TablesInsert<'oferta'>;
 export type UpdateOferta = TablesUpdate<'oferta'>;
 
