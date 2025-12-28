@@ -52,6 +52,38 @@ export const comercioService = {
     return data || [];
   },
 
+  // Obtener todos los comercios (público)
+  async getAllComercios(searchQuery: string = ''): Promise<Comercio[]> {
+    let query = supabase.from('comercio').select('*');
+
+    if (searchQuery) {
+      query = query.ilike('nombre', `%${searchQuery}%`);
+    }
+
+    const { data, error } = await query.order('id', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Obtener todos los servicios destacados (ofertas tipo servicio)
+  async getAllServices(searchQuery: string = ''): Promise<Oferta[]> {
+    let query = supabase
+      .from('oferta')
+      .select('*')
+      .eq('tipo', 'servicio')
+      .eq('disponible', true);
+
+    if (searchQuery) {
+      query = query.ilike('nombre', `%${searchQuery}%`);
+    }
+
+    const { data, error } = await query.order('id', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // Obtener un comercio específico
   async getComercioById(id: number): Promise<Comercio | null> {
     const { data, error } = await supabase
@@ -148,11 +180,55 @@ export const comercioService = {
 
   // Eliminar (o desactivar) una oferta
   async deleteOferta(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('oferta')
-      .delete()
-      .eq('id', id);
+    console.log('Intentando eliminar oferta:', id);
 
-    if (error) throw error;
+    // 1. Verificar si existen pedidos asociados (bloqueo por historial)
+    const { count, error: countError } = await supabase
+      .from('detalle_pedido')
+      .select('*', { count: 'exact', head: true })
+      .eq('oferta_id', id);
+
+    if (countError) {
+      console.error('Error verificando pedidos:', countError);
+      throw countError;
+    }
+
+    // Si hay pedidos, lanzamos error de llave foránea simulado para que el frontend sugiera archivar
+    // Esto evita borrar reseñas/categorías si la oferta no se puede eliminar
+    if (count && count > 0) {
+      console.log('Oferta tiene pedidos asociados, no se puede eliminar permanentemente');
+      throw { code: '23503', message: 'Oferta tiene pedidos asociados' };
+    }
+
+    // 2. Si no hay pedidos, eliminar dependencias
+    const { error: catError } = await supabase
+      .from('oferta_tiene_categoria')
+      .delete()
+      .eq('oferta_id', id);
+
+    if (catError) {
+      console.error('Error eliminando categorías:', catError);
+      throw catError;
+    }
+
+    const { error: revError } = await supabase
+      .from('resena_oferta')
+      .delete()
+      .eq('oferta_id', id);
+
+    if (revError) {
+      console.error('Error eliminando reseñas:', revError);
+      throw revError;
+    }
+
+    // 3. Eliminar la oferta
+    const { error } = await supabase.from('oferta').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error eliminando oferta:', error);
+      throw error;
+    }
+
+    console.log('Oferta eliminada correctamente:', id);
   },
 };
