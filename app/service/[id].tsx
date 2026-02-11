@@ -1,7 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Linking,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, Phone, MessageCircle, Calendar } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Star,
+  MapPin,
+  Clock,
+  Phone,
+  MessageCircle,
+  Calendar,
+} from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { Oferta } from '../../types';
@@ -65,14 +83,17 @@ export default function ServiceDetailScreen() {
 
   if (!service) {
     return (
-       <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="#8B4513" />
-            </TouchableOpacity>
+          </TouchableOpacity>
         </View>
         <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Servicio no encontrado</Text>
+          <Text style={styles.errorText}>Servicio no encontrado</Text>
         </View>
       </SafeAreaView>
     );
@@ -82,7 +103,10 @@ export default function ServiceDetailScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <ArrowLeft size={24} color="#8B4513" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil del Servicio</Text>
@@ -91,11 +115,29 @@ export default function ServiceDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Service Hero */}
         <View style={styles.serviceHero}>
-          <Image source={{ uri: service.imagen_url || 'https://via.placeholder.com/400' }} style={styles.serviceImage} />
+          <Image
+            source={{
+              uri: service.imagen_url || 'https://via.placeholder.com/400',
+            }}
+            style={styles.serviceImage}
+          />
           <View style={styles.serviceOverlay}>
-            <View style={[styles.availabilityBadge, service.disponible && styles.availableBadge]}>
-              <Clock size={12} color={service.disponible ? '#4CAF50' : '#FF9800'} />
-              <Text style={[styles.availabilityText, service.disponible && styles.availableText]}>
+            <View
+              style={[
+                styles.availabilityBadge,
+                service.disponible && styles.availableBadge,
+              ]}
+            >
+              <Clock
+                size={12}
+                color={service.disponible ? '#4CAF50' : '#FF9800'}
+              />
+              <Text
+                style={[
+                  styles.availabilityText,
+                  service.disponible && styles.availableText,
+                ]}
+              >
                 {service.disponible ? 'Disponible' : 'Ocupado'}
               </Text>
             </View>
@@ -107,18 +149,20 @@ export default function ServiceDetailScreen() {
           <View style={styles.serviceHeader}>
             <Text style={styles.serviceName}>{service.nombre}</Text>
             <View style={styles.priceContainer}>
-              <Text style={styles.priceSymbol}>{formatPrice(service.precio || 0)}</Text>
+              <Text style={styles.priceSymbol}>
+                {formatPrice(service.precio || 0)}
+              </Text>
             </View>
           </View>
-          
+
           <Text style={styles.serviceType}>Servicio</Text>
-          
+
           <View style={styles.ratingContainer}>
             <Star size={20} color="#FFD700" fill="#FFD700" />
             <Text style={styles.ratingText}>N/A</Text>
             <Text style={styles.reviewsText}></Text>
           </View>
-          
+
           <Text style={styles.serviceDescription}>{service.descripcion}</Text>
         </View>
 
@@ -140,9 +184,10 @@ export default function ServiceDetailScreen() {
         {/* Contact Info - Mocked/Unavailable */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Información</Text>
-          <Text style={styles.contactText}>Para más detalles contacte al proveedor.</Text>
+          <Text style={styles.contactText}>
+            Para más detalles contacte al proveedor.
+          </Text>
         </View>
-
       </ScrollView>
 
       {/* Bottom Actions */}
@@ -151,16 +196,16 @@ export default function ServiceDetailScreen() {
           <Phone size={20} color="#8B4513" />
           <Text style={styles.actionButtonText}>Llamar</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.actionButton} onPress={handleMessage}>
+
+        {/*<TouchableOpacity style={styles.actionButton} onPress={handleMessage}>
           <MessageCircle size={20} color="#8B4513" />
           <Text style={styles.actionButtonText}>Mensaje</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.primaryButton} onPress={handleBooking}>
+        </TouchableOpacity>*/}
+
+        {/*<TouchableOpacity style={styles.primaryButton} onPress={handleBooking}>
           <Calendar size={20} color="#FFFFFF" />
           <Text style={styles.primaryButtonText}>Reservar</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </View>
     </SafeAreaView>
   );

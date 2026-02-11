@@ -12,8 +12,9 @@ import {
   Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, X } from 'lucide-react-native';
+import { Camera, IterationCcwIcon, X } from 'lucide-react-native';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { toast } from 'sonner-native';
 
 type AuthMode = 'login' | 'register';
 
@@ -70,6 +71,7 @@ export function AuthForms() {
             [{ text: 'OK', style: 'cancel' }],
           );
         } else {
+          // toast(`Error al iniciar sesión: ${errorMessage}`);
           Alert.alert('Error', errorMessage);
         }
       }
@@ -149,6 +151,15 @@ export function AuthForms() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View aria-hidden={true} style={{ visibility: 'hidden' }}>
+          {error &&
+            toast(`Error: ${error}`, {
+              important: true,
+              richColors: true,
+              duration: 4000,
+            })}
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>
             {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
@@ -159,12 +170,6 @@ export function AuthForms() {
               : 'Únete a nuestra comunidad local'}
           </Text>
         </View>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
 
         <View style={styles.form}>
           {mode === 'register' && (

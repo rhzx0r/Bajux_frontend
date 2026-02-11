@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { CartProvider } from '@/contexts/CartContext';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { Toaster } from 'sonner-native';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -18,6 +19,7 @@ export default function RootLayout() {
           <Stack.Screen name="store/[id]" />
           <Stack.Screen name="checkout" />
         </Stack>
+        <Toaster />
         <StatusBar style="auto" />
       </CartProvider>
     </AuthProvider>
